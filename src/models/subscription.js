@@ -1,0 +1,40 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+
+const Subscription = sequelize.define('Subscription', {
+  subscription_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  price: {
+    type: DataTypes.FLOAT,
+  },
+  type: {
+    type: DataTypes.STRING,
+  },
+  subscription_status: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  start_date: {
+    type: DataTypes.DATE,
+  },
+  end_date: {
+    type: DataTypes.DATE,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+},
+  {
+    timestamps: false,
+  });
+
+
+module.exports = Subscription;
