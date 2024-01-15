@@ -78,7 +78,7 @@ const register = async (req, res) => {
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+      return res.status(409).json({ error: 'User with this email already exists' });
     }
 
     const password = await bcrypt.hash(req.body.password, 10);
@@ -105,6 +105,7 @@ const login = async (req, res) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
+    const profileId = req.body.profileId;
 
     // Check if the user with the provided email exists
     const existingUser = await User.findOne({
@@ -166,7 +167,7 @@ const login = async (req, res) => {
 
     // If the password is valid, generate a JWT token
     const token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
+      { userId: existingUser.id, email: existingUser.email, profileId: existingUser.profileId },
       process.env.JWT_KEY, // Secret key
       { expiresIn: '1h' }
     );
