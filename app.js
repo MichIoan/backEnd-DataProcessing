@@ -8,6 +8,9 @@ const xml2js = require('xml2js');
 const builder = new xml2js.Builder();
 require('dotenv').config();
 
+// Custom XML to JSON Middleware
+const xmlToJsonMiddleware = require('./src/middlewares/xmlToJson');
+
 // app
 const app = express();
 
@@ -17,22 +20,12 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(cors({ origin: true, credentials: true }));
 
-app.options('*', cors())
+app.options('*', cors());
 
-// Middleware to check if the request is XML
-app.use(function (req, res, next) {
-    req.isXml = req.is('application/xml');
-    next();
-});
+// Use the custom middleware for XML to JSON conversion
+app.use(xmlToJsonMiddleware);
 
-// Middleware to convert XML to JSON if request is XML
-app.use(function (req, res, next) {
-    if (req.isXml && req.body) {
-        req.body = req.body.root;
-    }
-    next();
-});
-
+// Error handling and response conversion middleware (keep these if needed)
 app.use((req, res, next) => {
     if (req.isXml) {
         const error = res.locals.error;
@@ -43,7 +36,6 @@ app.use((req, res, next) => {
     }
 });
 
-//middleware to convert JSON to XML if initial request was XML
 app.use(function (req, res, next) {
     if (req.isXml) {
         const xml = builder.buildObject(res.locals);
@@ -53,11 +45,10 @@ app.use(function (req, res, next) {
     }
 });
 
-//error handling
 app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
     const message = error.message;
-    res.locals = { status: status, error: message }; // storing the error in res.locals
+    res.locals = { status: status, error: message };
     next();
 });
 
@@ -72,4 +63,4 @@ app.use("/passwordReset", passwordReset);
 const port = process.env.PORT || 8081;
 
 // listener
-const server = app.listen(port, () => console.log(`server is running on port ${port}`));
+const server = app.listen(port, () => console.log(`server is running on port ${ port }`));
