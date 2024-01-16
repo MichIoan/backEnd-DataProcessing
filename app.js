@@ -32,6 +32,9 @@ app.use("/auth", authRoutes);
 const passwordReset = require('./src/routes/passwordReset');
 app.use("/passwordReset", passwordReset);
 
+const profileRoutes = require('./src/routes/profileRoute');
+app.use("/profile", profileRoutes);
+
 //port
 const port = process.env.PORT || 8081;
 
