@@ -71,6 +71,7 @@ async function sendVerificationEmail(email, link) {
 }
 
 const register = async (req, res) => {
+  
   try {
     const email = req.body.email;
 
