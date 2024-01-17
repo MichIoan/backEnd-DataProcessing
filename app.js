@@ -8,36 +8,61 @@ const xml2js = require('xml2js');
 const builder = new xml2js.Builder();
 require('dotenv').config();
 
-// Custom XML to JSON Middleware
-const xmlToJsonMiddleware = require('./src/middlewares/xmlToJson');
-
 // app
 const app = express();
 
-app.use(xmlparser());
-app.use(bodyParser.json());
-app.use(helmet());
-app.use(morgan("dev"));
-app.use(cors({ origin: true, credentials: true }));
+// Middleware setup
+app.use(xmlparser()); // Parse XML requests
 
-app.options('*', cors());
-
-// Use the custom middleware for XML to JSON conversion
-app.use(xmlToJsonMiddleware);
-
-// Error handling and response conversion middleware (keep these if needed)
+// Custom middleware to flatten XML structure
 app.use((req, res, next) => {
+    const contentType = req.get('Content-Type');
+    req.isXml = contentType && contentType.includes('application/xml');
+
+    if (req.isXml && req.body && typeof req.body === 'object') {
+        const rootElement = Object.keys(req.body)[0];
+        if (req.body[rootElement] instanceof Object) {
+
+            req.body = req.body[rootElement];
+
+            for (let key in req.body) {
+                if (Array.isArray(req.body[key]) && req.body[key].length === 1) {
+                    req.body[key] = req.body[key][0];
+                }
+            }
+        }
+    }
+
+    next();
+});
+
+app.use(bodyParser.json()); // Parse JSON requests
+app.use(helmet()); // Security headers
+app.use(morgan("dev")); // Logging
+app.use(cors({ origin: true, credentials: true })); // CORS configuration
+
+app.options('*', cors()); // CORS preflight
+
+// Error handling middleware
+app.use(function (err, req, res, next) {
     if (req.isXml) {
-        const error = res.locals.error;
-        const xml = builder.buildObject({ message: error.message });
-        res.type('application/xml').send(xml);
+        const xml = builder.buildObject({ error: err.message });
+        res.status(500).type('application/xml').send(xml);
     } else {
-        next();
+        res.status(500).json({ error: err.message });
     }
 });
 
-app.use(function (req, res, next) {
-    if (req.isXml) {
+// Routes
+const authRoutes = require('./src/routes/authRoutes');
+app.use("/auth", authRoutes);
+
+const passwordReset = require('./src/routes/passwordReset');
+app.use("/passwordReset", passwordReset);
+
+// Response middleware
+app.use(function (req, res) {
+    if (req.isXml || req.get('Accept') === 'application/xml') {
         const xml = builder.buildObject(res.locals);
         res.status(res.locals.status).type('application/xml').send(xml);
     } else {
@@ -45,22 +70,8 @@ app.use(function (req, res, next) {
     }
 });
 
-app.use((error, req, res, next) => {
-    const status = error.statusCode || 500;
-    const message = error.message;
-    res.locals = { status: status, error: message };
-    next();
-});
-
-// routes 
-const authRoutes = require('./src/routes/authRoutes');
-app.use("/auth", authRoutes);
-
-const passwordReset = require('./src/routes/passwordReset');
-app.use("/passwordReset", passwordReset);
-
-//port
+// Port configuration
 const port = process.env.PORT || 8081;
 
-// listener
-const server = app.listen(port, () => console.log(`server is running on port ${ port }`));
+// Start the server
+const server = app.listen(port, () => console.log(`Server is running on port ${port}`));

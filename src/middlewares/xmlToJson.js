@@ -10,6 +10,8 @@ const xmlToJsonMiddleware = (req, res, next) => {
                 req.body[key] = req.body[key][0];
             }
         }
+
+        console.log('Converted JSON:', req.body);
     }
     next();
 };

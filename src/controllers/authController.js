@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const prepareResponse = require('../middlewares/prepareResponse');
 
 async function isReferralCodeUnique(referralCode) {
   const existingUser = await User.findOne({
@@ -70,8 +71,7 @@ async function sendVerificationEmail(email, link) {
   }
 }
 
-const register = async (req, res) => {
-  
+const register = async (req, res, next) => {
   try {
     const email = req.body.email;
 
@@ -79,7 +79,9 @@ const register = async (req, res) => {
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
-      return res.status(409).json({ error: 'User with this email already exists' });
+      prepareResponse(res, 409, { error: 'User with this email already exists' });
+
+      return next();
     }
 
     const password = await bcrypt.hash(req.body.password, 10);
@@ -96,17 +98,22 @@ const register = async (req, res) => {
       referral_code: referral_code,
     });
 
-    res.status(201).json({ message: 'User registered successfully. Activate account from email!' });
+    prepareResponse(res, 201, { message: 'User registered successfully. Activate account from email!' });
+
+    next();
+
   } catch (error) {
-    res.status(500).json({ error: error });
+    prepareResponse(res, 500, { error: 'Internal server error' });
+
+    next();
   }
 };
 
-const login = async (req, res) => {
+
+const login = async (req, res, next) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
-    const profileId = req.body.profileId;
 
     // Check if the user with the provided email exists
     const existingUser = await User.findOne({
@@ -116,11 +123,15 @@ const login = async (req, res) => {
     });
 
     if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' });
+      prepareResponse(res, 404, { error: 'User not found' });
+
+      return next();
     }
 
     if (existingUser.status == 'not_activated') {
-      return res.status(403).json({ error: 'Please activate the account first' });
+      prepareResponse(res, 403, { error: 'Please activate the account first' });
+
+      next();
     }
 
     if (existingUser.status == "suspended") {
@@ -132,7 +143,9 @@ const login = async (req, res) => {
           failed_login_attempts: 0,
         })
       } else {
-        return res.status(403).json({ error: `Too many failed login attempts, try again later.` });
+        prepareResponse(res, 403, { error: `Your account is locked until ${existingUser.locked_until}` });
+
+        return next();
       }
 
     }
@@ -155,7 +168,9 @@ const login = async (req, res) => {
           failed_login_attempts: counter
         });
 
-        return res.status(403).json({ error: `You have failed to login for 3 times, you account has been locked for an hour.` });
+        prepareResponse(res, 403, { error: `You have failed to login for 3 times, you account has been locked for an hour.` });
+
+        return next();
       }
 
       existingUser.update({
@@ -163,7 +178,10 @@ const login = async (req, res) => {
       });
 
       const leftAttempts = 3 - counter;
-      return res.status(401).json({ error: `Invalid password. You have ${leftAttempts} attempts left.` });
+
+      prepareResponse(res, 401, { error: `Invalid password. You have ${leftAttempts} attempts left.` });
+
+      return next();
     }
 
     // If the password is valid, generate a JWT token
@@ -178,10 +196,12 @@ const login = async (req, res) => {
       locked_until: null,
     })
 
-    res.status(200).json({ message: 'Login successful', token: token });
+    prepareResponse(res, 200, { message: 'Login successful', token: token });
+
+    return next();
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    prepareResponse(res, 500, { error: 'Internal server error' });
   }
 };
 
@@ -203,10 +223,10 @@ const emailVerification = async (req, res) => {
       }
     )
 
-    res.status(200).json({ message: 'Account activated successfully.' });
+    prepareResponse(res, 200, { message: 'Account activated successfully' });
   } catch (error) {
     console.error('Error activating account:', error);
-    res.status(400).json({ error: 'Invalid or expired token.' });
+    prepareResponse(res, 400, { error: 'Invalid or expired token.' });
   }
 };
 
