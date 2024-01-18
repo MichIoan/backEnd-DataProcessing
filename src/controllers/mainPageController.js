@@ -11,7 +11,7 @@ const getMovies = async (req, res) => {
     try {
         const movies = await Media.findAll({
             where: {
-                season: '0',
+                season_id: '0',
             }
         });
 
@@ -22,6 +22,7 @@ const getMovies = async (req, res) => {
         }
     }
     catch (err) {
+        console.log(err);
         prepareResponse(res, 500, { error: 'Server error' });
     }
 }
