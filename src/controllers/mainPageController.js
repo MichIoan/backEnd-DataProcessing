@@ -1,16 +1,44 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const Series = require('../models/series');
+const Media = require('../models/media');
 
-async function callStoredProcedure(seasonId) {
+// Function to send response after processing
+function prepareResponse(res, statusCode, data) {
+    res.status(statusCode).send(data);
+}
+
+const getMovies = async (req, res) => {
     try {
-        const result = await sequelize.query('CALL get_media_by_season_id(:seasonId)', {
-            replacements: { seasonId },
-            type: Sequelize.QueryTypes.RAW,
+        const movies = await Media.findAll({
+            where: {
+                season: '0',
+            }
         });
 
-        console.log(result);
-    } catch (error) {
-        console.error('Error calling stored procedure:', error);
+        if (movies.length === 0) {
+            prepareResponse(res, 404, { error: 'No movies found' });
+        } else {
+            prepareResponse(res, 200, { movies: movies });
+        }
+    }
+    catch (err) {
+        prepareResponse(res, 500, { error: 'Server error' });
     }
 }
+
+const getSeries = async (req, res) => {
+    try {
+        const series = await Series.findAll();
+
+        if (series.length === 0) {
+            prepareResponse(res, 404, { error: 'No series found' });
+        } else {
+            prepareResponse(res, 200, { series: series });
+            }
+    }
+    catch (err) {
+        prepareResponse(res, 500, { error: 'Server error' });
+    }
+}
+
+module.exports = { getMovies, getSeries};
