@@ -62,6 +62,9 @@ app.use("/passwordReset", passwordReset);
 const subscriptionRoutes = require("./src/routes/subscriptionRoute");
 app.use("/subscription", subscriptionRoutes);
 
+const profileRoutes = require("./src/routes/profileRoutes");
+app.use("/profile", profileRoutes);
+
 // Response middleware
 app.use(function (req, res) {
   if (req.isXml || req.headers["accept"] === "application/xml") {
