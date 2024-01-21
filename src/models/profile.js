@@ -33,6 +33,7 @@ const Profile = sequelize.define('Profile', {
 },
     {
         timestamps: false,
+        tableName: 'Profile'
     });
 
 module.exports = Profile;
