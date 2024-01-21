@@ -60,6 +60,9 @@ app.use("/auth", authRoutes);
 const passwordReset = require("./src/routes/passwordReset");
 app.use("/passwordReset", passwordReset);
 
+const mainPageRoute = require('./src/routes/mainPage');
+app.use("/media", mainPageRoute);
+
 const subscriptionRoutes = require("./src/routes/subscriptionRoute");
 app.use("/subscription", subscriptionRoutes);
 

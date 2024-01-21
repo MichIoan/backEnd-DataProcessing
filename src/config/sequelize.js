@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize({
-  database: 'netflix',
+  database: 'postgres',
   username: 'user',
   password: 'root',
   host: 'localhost',
