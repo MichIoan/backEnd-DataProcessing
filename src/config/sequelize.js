@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize({
   database: 'postgres',
-  username: 'postgres',
+  username: 'user',
   password: 'root',
   host: 'localhost',
   dialect: 'postgres',
