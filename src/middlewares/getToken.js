@@ -9,7 +9,7 @@ function getToken(req) {
         }
     }
 
-    return null; // Return null if no token is found
+    return null;
 }
 
 module.exports = getToken;
