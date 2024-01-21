@@ -57,8 +57,17 @@ app.use(function (err, req, res, next) {
 const authRoutes = require('./src/routes/authRoutes');
 app.use("/auth", authRoutes);
 
-const passwordReset = require('./src/routes/passwordReset');
+const passwordReset = require("./src/routes/passwordReset");
 app.use("/passwordReset", passwordReset);
+
+const mainPageRoute = require('./src/routes/mainPage');
+app.use("/media", mainPageRoute);
+
+const subscriptionRoutes = require("./src/routes/subscriptionRoute");
+app.use("/subscription", subscriptionRoutes);
+
+const profileRoutes = require('./src/routes/profileRoute');
+app.use("/profile", profileRoutes);
 
 // Response middleware
 app.use(function (req, res) {
@@ -74,4 +83,6 @@ app.use(function (req, res) {
 const port = process.env.PORT || 8081;
 
 // Start the server
-const server = app.listen(port, () => console.log(`Server is running on port ${port}`));
+const server = app.listen(port, () =>
+  console.log(`Server is running on port ${port}`)
+);

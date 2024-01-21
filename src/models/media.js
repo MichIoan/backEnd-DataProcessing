@@ -23,12 +23,13 @@ const Media = sequelize.define('Media', {
         type: DataTypes.FLOAT,
         allowNull: false,
     },
-    releaseDate: {
+    release_date: {
         type: DataTypes.DATE
     },
 },
     {
         timestamps: false,
+        tableName: 'Media',
     });
 
 module.exports = Media;
