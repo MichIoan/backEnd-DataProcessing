@@ -1,11 +1,7 @@
 const User = require('../models/user');
 const Series = require('../models/series');
 const Media = require('../models/media');
-
-// Function to send response after processing
-function prepareResponse(res, statusCode, data) {
-    res.status(statusCode).send(data);
-}
+const response = require('../utilities/response');
 
 const getMovies = async (req, res) => {
     try {
@@ -16,14 +12,14 @@ const getMovies = async (req, res) => {
         });
 
         if (movies.length === 0) {
-            prepareResponse(res, 404, { error: 'No movies found' });
+            response(res, 200, { message: "You don't have any movies in the database." });
         } else {
-            prepareResponse(res, 200, { movies: movies });
+            response(res, 200, { movies: movies });
         }
     }
     catch (err) {
         console.log(err);
-        prepareResponse(res, 500, { error: 'Server error' });
+        response(res, 500, { error: 'Server error' });
     }
 }
 
@@ -32,14 +28,14 @@ const getSeries = async (req, res) => {
         const series = await Series.findAll();
 
         if (series.length === 0) {
-            prepareResponse(res, 404, { error: 'No series found' });
+            response(res, 200, { message: 'You have no series in your database.' });
         } else {
-            prepareResponse(res, 200, { series: series });
-            }
+            response(res, 200, { series: series });
+        }
     }
     catch (err) {
-        prepareResponse(res, 500, { error: 'Server error' });
+        response(res, 500, { error: 'Server error' });
     }
 }
 
-module.exports = { getMovies, getSeries};
+module.exports = { getMovies, getSeries };

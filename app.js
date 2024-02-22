@@ -2,19 +2,14 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const helmet = require('helmet');
 const xmlparser = require('express-xml-bodyparser');
-const xml2js = require('xml2js');
-const builder = new xml2js.Builder();
+
 require('dotenv').config();
 
-// app
 const app = express();
 
-// Middleware setup
-app.use(xmlparser()); // Parse XML requests
+app.use(xmlparser());
 
-// Custom middleware to flatten XML structure
 app.use((req, res, next) => {
     const contentType = req.get('Content-Type');
     req.isXml = contentType && contentType.includes('application/xml');
@@ -36,14 +31,12 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(bodyParser.json()); // Parse JSON requests
-app.use(helmet()); // Security headers
-app.use(morgan("dev")); // Logging
-app.use(cors({ origin: true, credentials: true })); // CORS configuration
+app.use(bodyParser.json());
+app.use(morgan("dev"));
+app.use(cors({ origin: true, credentials: true }));
 
-app.options('*', cors()); // CORS preflight
+app.options('*', cors());
 
-// Error handling middleware
 app.use(function (err, req, res, next) {
     if (req.isXml) {
         const xml = builder.buildObject({ error: err.message });
@@ -53,36 +46,17 @@ app.use(function (err, req, res, next) {
     }
 });
 
-// Routes
 const authRoutes = require('./src/routes/authRoutes');
 app.use("/auth", authRoutes);
 
-const passwordReset = require("./src/routes/passwordReset");
-app.use("/passwordReset", passwordReset);
+const userRoutes = require('./src/routes/userRoutes');
+app.use("/users", userRoutes);
 
-const mainPageRoute = require('./src/routes/mainPage');
-app.use("/media", mainPageRoute);
+//const contentRoutes = require('./src/routes/mainPage');
+//app.use("/content", contentRoutes);
 
-const subscriptionRoutes = require("./src/routes/subscriptionRoute");
-app.use("/subscription", subscriptionRoutes);
+const port = process.env.PORT;
 
-const profileRoutes = require('./src/routes/profileRoute');
-app.use("/profile", profileRoutes);
-
-// Response middleware
-app.use(function (req, res) {
-    if (req.isXml || req.get('Accept') === 'application/xml') {
-        const xml = builder.buildObject(res.locals);
-        res.status(res.locals.status).type('application/xml').send(xml);
-    } else {
-        res.status(res.locals.status).json(res.locals);
-    }
-});
-
-// Port configuration
-const port = process.env.PORT || 8081;
-
-// Start the server
 const server = app.listen(port, () =>
-  console.log(`Server is running on port ${port}`)
+    console.log(`Server is running on port ${port}`)
 );

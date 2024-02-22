@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Subscription = require("../models/subscription");
-const prepareResponse = require("../middlewares/prepareResponse");
+const prepareResponse = require("../utilities/response");
 const getToken = require("../middlewares/getToken");
 
 const getSubscriptionInfo = async (req, res) => {

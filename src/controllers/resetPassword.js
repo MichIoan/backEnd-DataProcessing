@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/user');
-const prepareResponse = require('../middlewares/prepareResponse');
+const prepareResponse = require('../utilities/response');
 
 const resetPasswordEmail = async (req, res) => {
     try {

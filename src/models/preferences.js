@@ -1,36 +1,32 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
-const Profile = sequelize.define('Profile', {
-    profile_id: {
+const Preferences = sequelize.define('Preferences', {
+    preference_id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
         allowNull: false,
     },
-    user_id: {
+    profile_id: {
         type: DataTypes.INTEGER
     },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    photo_path: {
+    content_type: {
         type: DataTypes.STRING,
     },
-    child_profile: {
-        type: DataTypes.BOOLEAN,
-    },
-    date_of_birth: {
-        type: DataTypes.DATE,
-    },
-    language: {
+    genre: {
         type: DataTypes.STRING,
-    }
+    },
+    minimum_age: {
+        type: DataTypes.STRING,
+    },
+    viewing_classification: {
+        type: DataTypes.STRING,
+    },
 },
     {
         timestamps: false,
-        tableName: 'Profile',
+        tableName: 'Preferences',
     });
 
-module.exports = Profile;
+module.exports = Preferences;
