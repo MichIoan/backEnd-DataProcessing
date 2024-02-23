@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const isAuth = require('../middlewares/isAuth');
+
+router.use(isAuth);
 
 router.get('/movie/:movieId', mainPageController.getMovies);
 
