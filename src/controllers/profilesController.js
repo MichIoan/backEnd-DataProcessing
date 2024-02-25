@@ -1,27 +1,20 @@
-const jwt = require('jsonwebtoken');
 const Profile = require('../models/profile');
 const User = require('../models/user');
-const getToken = require('../middlewares/getToken');
-const sendResponse = require('../utilities/response');
 const Preferences = require('../models/preferences');
-const getProfile = require('../utilities/getProfile');
+const response = require('../utilities/response');
 
 const getProfileInformation = async (req, res) => {
     try {
-        const decoded = await verifyToken(req, res);
-
         const userId = req.params.userId;
         const profileId = req.params.profileId;
 
-        if (res.headersSent) return;
-
         if (!userId) {
-            sendResponse(req, res, 401, { error: "Please provide the user id as a parameter in the URL" });
+            response(req, res, 401, { error: "Please provide the user id as a parameter in the URL" });
             return;
         }
 
         if (!profileId) {
-            sendResponse(req, res, 401, { error: "Please provide the profileId as a parameter in the URL" });
+            response(req, res, 401, { error: "Please provide the profileId as a parameter in the URL" });
             return;
         }
 
@@ -32,7 +25,7 @@ const getProfileInformation = async (req, res) => {
         })
 
         if (!existingUser) {
-            sendResponse(req, res, 401, { error: "No user found with this id" });
+            response(req, res, 401, { error: "No user found with this id" });
             return;
         }
 
@@ -44,49 +37,45 @@ const getProfileInformation = async (req, res) => {
         });
 
         if (!profile) {
-            sendResponse(req, res, 401, { error: "No profile found" });
+            response(req, res, 401, { error: "No profile found with this id" });
             return;
         }
 
-        sendResponse(req, res, 202, { profile });
+        response(req, res, 202, { profile });
         return;
 
     } catch (error) {
         console.log(error);
-        sendResponse(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
 }
 
 const getAccountProfiles = async (req, res) => {
+    const userId = req.params.userId;
+
+    if (!userId) {
+        response(req, res, 401, { error: "Please provide user id as parameter in the URL" });
+        return;
+    }
+
     try {
-        const decoded = await verifyToken(req, res);
-
-        if (res.headersSent) return;
-
-        const existingUser = await User.findOne({
+        const profiles = await Profile.findAll({
             where: {
-                email: decoded.email,
+                user_id: userId,
             }
         });
 
-        if (!existingUser) {
-            sendResponse(req, res, 404, { error: "No user found with this email" });
+        if (!profiles) {
+            response(req, res, 401, { error: "No profiles found" });
             return;
         }
 
-        const profiles = await Profile.findAll({
-            where: {
-                user_id: existingUser.user_id,
-            }
-        });
-
-        sendResponse(req, res, 202, { profiles });
+        response(req, res, 202, { profiles });
         return;
-
     } catch (error) {
         console.log(error);
-        sendResponse(req, res, 500, { error: "internal server error" });
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
 }
@@ -94,24 +83,17 @@ const getAccountProfiles = async (req, res) => {
 const createProfile = async (req, res) => {
     try {
         const profileDetails = req.body;
-        const decoded = await verifyToken(req, res);
-
-        if (res.headersSent) return;
-
-        const email = decoded.email;
+        const userId = req.params.userId;
         const existingUser = await User.findOne({
             where: {
-                email: email,
+                user_id: userId,
             }
         });
 
         if (!existingUser) {
-            sendResponse(req, res, 404, { error: "User not found" });
+            response(req, res, 404, { error: "User not found" });
             return;
         }
-
-        const userId = existingUser.user_id;
-
         const check = await Profile.findOne({
             where: {
                 user_id: userId,
@@ -120,10 +102,9 @@ const createProfile = async (req, res) => {
         });
 
         if (check) {
-            sendResponse(req, res, 409, { error: "Profile with this name already exists" });
+            response(req, res, 409, { error: "Profile with this name already exists" });
             return;
         } else {
-
             const profile = await Profile.create({
                 user_id: userId,
                 name: profileDetails.name,
@@ -134,13 +115,12 @@ const createProfile = async (req, res) => {
                 language: profileDetails.language,
             });
 
-            sendResponse(req, res, 201, { message: "Profile created successfully" });
+            response(req, res, 201, { message: "Profile created successfully" });
             return;
         }
-
     } catch (error) {
         console.error(error);
-        sendResponse(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
 };
@@ -148,46 +128,33 @@ const createProfile = async (req, res) => {
 const modifyProfile = async (req, res) => {
     try {
         const profileDetails = req.body;
-        const decoded = await verifyToken(req, res);
+        const userId = req.params.userId;
+        const profileId = req.params.profileId;
 
-        if (res.headersSent) return;
+        if (!userId) {
+            response(req, res, 401, { error: "Please provide the user id in the URL" });
+            return;
+        }
 
-        const email = decoded.email;
-        const existingUser = await User.findOne({
+        if (!profileId) {
+            response(req, res, 401, { error: "Please provide the profile id in the URL" });
+            return;
+        }
+
+        const existingProfile = await Profile.findOne({
             where: {
-                email: email,
+                profile_id: profileId,
+                user_id: userId
             }
         });
 
-        if (!existingUser) {
-            sendResponse(req, res, 404, { error: "User not found" });
+        if (!existingProfile) {
+            response(req, res, 404, { error: "No profile found" });
             return;
         }
-
-        const userId = existingUser.user_id;
-        const profileName = req.body.profileName;
-
-        if (!profileName) {
-            sendResponse(req, res, 404, { error: "Please provide the profile name" });
-            return;
-        }
-
-        const profile = await Profile.findOne({
-            where: {
-                user_id: userId,
-                name: profileName,
-            }
-        });
-
-        if (!profile) {
-            sendResponse(req, res, 404, { error: "No profile found" });
-            return;
-        }
-
-        const profileId = profile.profile_id;
 
         const updatedProfileData = {};
-        if (profileDetails.NewName) updatedProfileData.name = profileDetails.NewName;
+        if (profileDetails.newName) updatedProfileData.name = profileDetails.newName;
         if (profileDetails.photoPath) updatedProfileData.photo_path = profileDetails.photoPath;
         if (profileDetails.childProfile !== undefined) updatedProfileData.child_profile = profileDetails.childProfile;
         if (profileDetails.date_of_birth) updatedProfileData.date_of_birth = profileDetails.date_of_birth;
@@ -198,76 +165,92 @@ const modifyProfile = async (req, res) => {
                 where:
                 {
                     profile_id: profileId,
-                    name: profileName,
+                    user_id: userId
                 }
             });
 
-            sendResponse(req, res, 200, { message: "Profile updated successfully!" });
-
+            response(req, res, 200, { message: "Profile updated successfully!" });
             return;
         } else {
-            sendResponse(req, res, 200, { message: "No settings updated" });
-
+            response(req, res, 200, { message: "No settings updated" });
             return;
         }
     } catch (error) {
         console.log(error);
-        sendResponse(req, res, 500, { error: "Internal server error" });
-
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
 }
 
 const modifyPreferences = async (req, res) => {
     try {
-        const decoded = await verifyToken(req, res);
+        const userId = req.params.userId;
+        const profileId = req.params.profileId;
+        const preferences = req.body;
 
-        if (res.headersSent) return;
-
-        let profile;
-        await getProfile(req, res, decoded, next).then(fetchedProfile => {
-            profile = fetchedProfile;
-        });
-
-        const profileId = profile.profile_id;
-
-        if (!profileId) {
-            sendResponse(req, res, 404, { error: "Profile not found" });
+        if (!userId) {
+            response(req, res, 400, { error: "Please provide the user id in the URL" });
             return;
         }
 
-        const preferences = await Preferences.findOne({
-            where:
-            {
+        if (!profileId) {
+            response(req, res, 400, { error: "Please provide the profile id in the URL" });
+            return;
+        }
+
+        const existingProfile = await Profile.findOne({
+            where: {
+                user_id: userId,
                 profile_id: profileId,
             }
         });
 
-        sendResponse(req, res, 202, { message: "Profile found" });
-        return;
+        if (!existingProfile) {
+            response(req, res, 401, { message: "No profile found for this id" });
+            return;
+        }
 
+        const updatedPreferences = {};
+        if (updatedPreferences.content_type) updatedPreferences.content_type = preferences.content_type;
+        if (updatedPreferences.genre) updatedPreferences.genre = preferences.genre;
+        if (updatedPreferences.minimum_age) updatedPreferences.minimum_age = preferences.minimum_age;
+        if (updatedPreferences.viewing_classification) updatedPreferences.viewing_classification = preferences.viewing_classification;
+
+        if (!updatedPreferences) {
+            response(req, res, 200, { message: "No preferences were modified" });
+            return;
+        }
+
+        if (updatedPreferences) {
+            await Preferences.update(updatedPreferences, {
+                where:
+                {
+                    profile_id: profileId,
+                }
+            });
+        }
+
+        response(req, res, 202, { message: "Profile's preferences successfully modified" });
+        return;
     } catch (error) {
         console.log(error);
-        sendResponse(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
 }
 
 const deleteProfile = async (req, res) => {
     try {
-        const decoded = await verifyToken(req, res);
-
-        if (res.headersSent) return;
-
-        const profile = await getProfile(req, res, decoded.email);
-
-        if (res.headersSent) return;
-
-        const profileId = profile.profile_id;
+        const profileId = req.params.profileId;
+        const userId = req.params.userId;
 
         if (!profileId) {
-            sendResponse(req, res, 401, { error: "Profile not found" });
+            response(req, res, 401, { error: "Please provide the profile id in the URL" });
+            return;
+        }
 
+        if (!userId) {
+            response(req, res, 401, { error: "Please provide the user id in the URL" });
             return;
         }
 
@@ -275,45 +258,22 @@ const deleteProfile = async (req, res) => {
             where:
             {
                 profile_id: profileId,
-                name: profile.name,
+                user_id: userId,
             }
         });
 
         if (!destroyed) {
-            sendResponse(req, res, 404, { error: "No profile found with this name" });
-
+            response(req, res, 404, { error: "No profile found with this name" });
             return;
         }
 
-        sendResponse(req, res, 204, { message: "Profile deleted successfully" });
-
+        response(req, res, 204, { message: "Profile deleted successfully" });
         return;
     } catch (error) {
         console.log(error);
-        sendResponse(req, res, 500, { error: "Internal server error" });
-
+        response(req, res, 500, { error: "Internal server error" });
         return;
     }
-}
-
-async function verifyToken(req, res) {
-    const token = getToken(req);
-    let decoded;
-    try {
-        decoded = jwt.verify(token, process.env.JWT_KEY);
-    } catch (error) {
-        if (error instanceof jwt.TokenExpiredError) {
-            sendResponse(req, res, 401, { error: "Token expired" });
-
-            return;
-        } else {
-            sendResponse(req, res, 401, { error: "Invalid token" });
-
-            return;
-        }
-    }
-
-    return decoded;
 }
 
 module.exports = { createProfile, modifyProfile, modifyPreferences, getProfileInformation, getAccountProfiles, deleteProfile };

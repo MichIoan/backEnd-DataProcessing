@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/user');
-const prepareResponse = require('../utilities/response');
+const response = require('../utilities/response');
 
 const resetPasswordEmail = async (req, res) => {
     try {
@@ -23,12 +23,12 @@ const resetPasswordEmail = async (req, res) => {
         const resetPasswordLink = `localhost:8081/passwordReset/resetPassword?token=${token}`;
         await sendResetPassEmail(req.body.email, resetPasswordLink);
 
-        prepareResponse(res, 200, { message: 'Please check your email to reset your password.' });
-
-        return next();
+        response(req, res, 200, { message: 'Please check your email to reset your password.' });
+        return;
     } catch (error) {
         console.error(error);
-        prepareResponse(res, 500, { error: 'Internal server error' });
+        response(req, res, 500, { error: 'Internal server error' });
+        return;
     }
 }
 
@@ -78,24 +78,20 @@ const updatePassword = async (req, res) => {
         });
 
         if (!existingUser) {
-            prepareResponse(res, 404, { error: 'User not found' });
-
-            return next();
+            response(req, res, 404, { error: 'User not found' });
+            return;
         }
 
         existingUser.update({
             password: hashedPassword
         });
 
-        prepareResponse(res, 200, { message: `Password has been changed.` });
-
-        return next();
-
+        response(req, res, 200, { message: `Password has been changed.` });
+        return;
     } catch (error) {
         console.error(error);
-        prepareResponse(res, 500, { error: 'Internal server error' });
-
-        return next();
+        response(req, res, 500, { error: 'Internal server error' });
+        return;
     }
 }
 

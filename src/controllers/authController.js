@@ -4,10 +4,17 @@ const User = require('../models/user');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const response = require('../utilities/response');
+const { isEmail, isValidPassword } = require('../utilities/validate');
 
 const register = async (req, res) => {
   try {
     const email = req.body.email;
+
+    if (!isEmail(email)) {
+      response(req, res, 401, { error: "Invalid email format!" });
+      return;
+    }
+
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
@@ -15,33 +22,46 @@ const register = async (req, res) => {
       return;
     }
 
+    if (!isValidPassword(req.body.password)) {
+      response(req, res, 401, { error: "Password must contain at least 1 capital, a number and 6 characters" });
+      return;
+    }
+
     const password = await bcrypt.hash(req.body.password, 10);
     const referral_code = await generateUniqueReferralCode(email);
-
     const token = jwt.sign({ email: req.body.email }, process.env.JWT_KEY, { expiresIn: '1d' });
-
     const verificationLink = `localhost:8081/auth/activateAccount?token=${token}`;
+
     await sendVerificationEmail(req.body.email, verificationLink);
 
-    await User.create({
+    const newUser = await User.create({
       email: email,
       password: password,
       referral_code: referral_code,
     });
 
+    if (!newUser) {
+      response(req, res, 400, { error: "Error while creating the account, please try again" });
+      return;
+    }
+
     response(req, res, 201, { message: 'User registered successfully. Activate account from email!' });
     return;
-
   } catch (error) {
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
-};
+}
 
 const login = async (req, res) => {
   try {
     const email = req.body.email;
     const password = req.body.password;
+
+    if (!isEmail(email)) {
+      response(req, res, 401, { error: "Invalid email format" });
+      return;
+    }
 
     const existingUser = await User.findOne({
       where: {
@@ -71,7 +91,6 @@ const login = async (req, res) => {
         response(req, res, 403, { error: `Your account is locked until ${existingUser.locked_until}` });
         return;
       }
-
     }
 
     const isPasswordValid = await bcrypt.compare(password, existingUser.password);
@@ -120,7 +139,7 @@ const login = async (req, res) => {
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
-};
+}
 
 const emailVerification = async (req, res) => {
   const token = req.query.token;
@@ -144,7 +163,7 @@ const emailVerification = async (req, res) => {
     response(req, res, 400, { error: 'Invalid or expired token.' });
     return;
   }
-};
+}
 
 async function isReferralCodeUnique(referralCode) {
   const existingUser = await User.findOne({
