@@ -4,7 +4,6 @@ function getToken(req) {
     if (authHeader) {
         const bearer = authHeader.split(" ");
         if (bearer.length == 2 && bearer[0] === "Bearer") {
-            console.log(bearer[1]);
             return bearer[1]; // Return the token
         }
     }

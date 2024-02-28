@@ -1,15 +1,14 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Subscription = require("../models/subscription");
-const prepareResponse = require("../middlewares/prepareResponse");
-const getToken = require("../middlewares/getToken");
+const response = require("../utilities/response");
 
 const getSubscriptionInfo = async (req, res) => {
   try {
     const jwtToken = getToken(req);
 
     if (!jwtToken) {
-      prepareResponse(res, 404, { error: "No JWT token found in the Header" });
+      response(req, res, 404, { error: "No JWT token found in the Header" });
       return;
     }
 
@@ -24,7 +23,7 @@ const getSubscriptionInfo = async (req, res) => {
     });
 
     if (!existingUser) {
-      prepareResponse(res, 404, { error: "No user found with this email" });
+      response(req, res, 404, { error: "No user found with this email" });
     }
 
     const userId = existingUser.account_id;
@@ -36,9 +35,7 @@ const getSubscriptionInfo = async (req, res) => {
     });
 
     if (!subscription) {
-      prepareResponse(res, 404, {
-        message: "No subscription was found for this user.",
-      });
+      response(req, res, 404, { message: "No subscription was found for this user." });
       return;
     }
 
@@ -52,10 +49,12 @@ const getSubscriptionInfo = async (req, res) => {
       subscription.description
     );
 
-    prepareResponse(res, 200, subscription);
+    response(req, res, 200, subscription);
+    return;
   } catch (err) {
     console.log(err);
-    prepareResponse(res, 500, { message: err });
+    response(req, res, 500, { message: err });
+    return;
   }
 };
 
