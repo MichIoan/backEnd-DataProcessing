@@ -17,7 +17,7 @@ const Subscription = sequelize.define('Subscription', {
   type: {
     type: DataTypes.STRING,
   },
-  subscription_status: {
+  status: {
     type: DataTypes.STRING,
     allowNull: false,
   },
