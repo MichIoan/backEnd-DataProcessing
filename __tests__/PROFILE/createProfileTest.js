@@ -31,7 +31,11 @@ const pool = new Pool({
 //         });
 //     }
 // });
+
+let createdProfiles1 = [];
+let userId1 = 43;
 let userId;
+
 describe('POST /profiles/create', () => {
     beforeEach(async () => {
         const login = await axios.post(loginURL, userDetails);
@@ -39,27 +43,25 @@ describe('POST /profiles/create', () => {
         // Object to store the ids of the created profiles
     });
 
-    let createdProfiles1 = [];
-    let userId1 = 43;
 
     it('Response status code for profile creation is 201', async () => {
         try {
             userDetails.name = 'test_profile';
-        createdProfiles1.push(userDetails.name);
-        userDetails.profile_image = 'example.jpg';
-        userDetails.kids = false;
-        userDetails.preferences = 41;
-        userDetails.date_of_birth = Date.now;
-        userDetails.language = 'english';
-        const response = await axios.post(profileURL, userDetails, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            },
-        });
-        expect(response.status).toBe(201);
-        expect(response.data).toEqual({
-            "message": 'Profile created successfully'
-        });
+            createdProfiles1.push(userDetails.name);
+            userDetails.profile_image = 'example.jpg';
+            userDetails.kids = false;
+            userDetails.preferences = 41;
+            userDetails.date_of_birth = Date.now;
+            userDetails.language = 'english';
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+            });
+            expect(response.status).toBe(201);
+            expect(response.data).toEqual({
+                "message": 'Profile created successfully'
+            });
         } catch (error) {
             console.log(error);
         }
@@ -110,7 +112,6 @@ describe('POST /profiles/create', () => {
                 userDetails.name = 'test_profile';
                 userDetails.profile_image = 'example.jpg';
                 userDetails.kids = false;
-                // userDetails.preferences = "";
                 userDetails.date_of_birth = Date.now();
                 userDetails.language = 'english';
                 const response = await axios.post(profileURL, userDetails, {
@@ -127,21 +128,6 @@ describe('POST /profiles/create', () => {
             }
         });
 
-        // it('Response status code for profile creation is 400 when user reaches maximum profile count of 4', async () => {
-        //     // Create 4 profiles
-        //     let loginURL = `http://localhost:8081/auth/login`;
-        //     let profileURL = `http://localhost:8081/users/40/profiles/create`;
-        //     let response;
-
-        //     for (let i = 0; i < 4; i++) {
-        //         const userDetailsWithIndex = Object.assign({}, userDetails);
-        //         userDetailsWithIndex.name = `test_profile_${i}`;
-        //         response = await axios.post(profileURL, userDetailsWithIndex, {
-        //             headers: {
-        //                 Authorization: `Bearer ${token}`
-        //             },
-        //         });
-        //     }
 
         describe('Profile creation tests', () => {
             const profileURL = 'http://localhost:8081/users/40/profiles/create';
@@ -174,109 +160,72 @@ describe('POST /profiles/create', () => {
                     console.log(error);
                 }
             });
+
             // Post-test cleanup: delete created profiles
-            afterAll(async () => {
+            afterEach(async () => {
                 // let profile_id;
                 for (let name of createdProfiles) {
                     await pool.query(`DELETE FROM "Profiles" WHERE "Profiles"."name" = $1  AND "Profiles"."user_id" = $2`,
                         [name, userId]);
                 }
-
-                pool.end();
             });
         });
     });
 
+    describe('Profile creation tests for non existing user', () => {
+        let loginURL = `http://localhost:8081/auth/login`;
+        let profileURL = `http://localhost:8081/users/23/profiles/create`;
+        const user_id = 23;
+        let pool;
 
-    // // Attempt to create one more profile
-    // const response = await axios.post(profileURL, userDetails, {
-    //     headers: {
-    //         Authorization: `Bearer ${token}`
-    //     },
-    // });
-    // expect(response.status).toBe(400);
-    // expect(response.data).toEqual({
-    //     "error": 'Maximum profile count reached'
-    // });
+        beforeEach(async () => {
+            const {
+                Pool
+            } = require('pg');
+            pool = new Pool({
+                user: 'postgres',
+                host: 'localhost',
+                database: 'Netflix',
+                password: 'root',
+                port: 5432,
+            });
+        });
+
+
+        it('Profile creation tests for non existing user should return 404', async () => {
+            try {
+                userDetails.name = 'non_existing';
+                userDetails.profile_image = 'example.jpg';
+                userDetails.kids = false;
+                userDetails.date_of_birth = Date.now();
+                userDetails.language = 'english';
+                const response = await axios.post(profileURL, userDetails, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                });
+                expect(response.status).toBe(404);
+                expect(response.data).toEqual({
+                    "message": 'User not found'
+                });
+            } catch (error) {
+                // Handle error
+            }
+        });
+
+        afterAll(async () => {
+            try {
+                // Clean up created profiles after all tests have finished
+                for (let name of createdProfiles1) {
+                    await pool.query(`DELETE FROM "Profiles" WHERE "Profiles"."name" = $1  AND "Profiles"."user_id" = $2`,
+                        [name, userId1]);
+                }
+                // Close the PostgreSQL pool connection
+            } catch (error) {
+                console.error('Error during cleanup:', error);
+                throw error;
+            }
+            pool.end();
+        });
+    });
 });
-// });
-
-
-// });
-
-// // Test when a user not exists for create a profile
-// pm.test("User not found", function () {
-//     if (pm.response.code === 404) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.be.a('string');
-//         pm.expect(jsonData.error).to.equal("User not found");
-//     }
-// });
-
-// // Test if response has the required field- error
-// pm.test("Response has the required field- error", function () {
-//     if (pm.response.code !== 201) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.exist.and.to.be.a('string');
-//     }
-// });
-
-// // Test Response status code is 500 for server error
-// pm.test("Response status code is 500", function () {
-//     if (pm.response.code === 500) {
-//         pm.expect(pm.response.code).to.equal(500);
-//     }
-// });
-
-// // Test if internal server error is returned
-// pm.test("Internal server error", function () {
-//     if (pm.response.code === 500) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.be.a('string');
-//         pm.expect(jsonData.error).to.equal("Internal server error");
-//     }
-// });
-
-// // Test if Response time is less than 200ms
-// pm.test("Response time is less than 200ms", function () {
-//     pm.expect(pm.response.responseTime).to.be.below(200);
-// });
-
-// // Test if the response is not empty
-// pm.test("Response is not empty", function () {
-//     pm.response.to.not.be.empty;
-// });
-
-// // Test when no parameter is provided in the URL
-// pm.test("Please provide user id as parameter in the URL", function () {
-//     if (pm.response.code === 401) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.be.a('string');
-//         pm.expect(jsonData.error).to.equal("Please provide the user id as a parameter in the URL");
-//     }
-// });
-
-// // Test when no profileName is provided in the request
-// pm.test("Please provide profileName in the request body", function () {
-//     if (pm.response.code === 400) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.be.a('string');
-//         pm.expect(jsonData.error).to.equal("Please provide profileName in the request body");
-//     }
-// });
-
-// // Test successful response structure
-// pm.test("Response structure is correct", function () {
-//     const jsonData = pm.response.json();
-//     if (jsonData.statusCode === 201) {
-//         pm.expect(jsonData).to.have.property('message');
-//     }
-// });
-
-// // Test whether no profile exists for the provided user id
-// pm.test("No profiles found for user", function () {
-//     if (pm.response.code === 404) {
-//         var jsonData = pm.response.json();
-//         pm.expect(jsonData.error).to.eql('No profile found for this user id');
-//     }
-// });
