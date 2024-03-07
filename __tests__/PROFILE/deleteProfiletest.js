@@ -1,94 +1,138 @@
-// checking for successful delete response
-pm.test("Response status code is 204 on successful delete", function () {
-    pm.expect(pm.response.code).to.equal(204);
-});
+const axios = require("axios");
+const profileURL = `http://localhost:8081/users/37/:userId/profiles`;
+const loginURL = `http://localhost:8081/auth/login`;
+const email = "test@user.com";
+const password = "Password1";
+const userDetails = {
+    email,
+    password,
+};
 
-pm.test("Response body is empty on successful delete", function () {
-    pm.expect(pm.response.text()).to.eql("");
-});
+describe("Profiles for Account", () => {
+    let token;
 
-// checking for a case when the userId is not provided
-pm.test("Response status code is 401 when userId is not provided", function () {
-    pm.expect(pm.response.code).to.equal(401);
-});
+    it("Login to have token for all tests", async () => {
+        // Perform login before each test
+        userDetails.name = "david";
+        userDetails.profile_image = "example.jpg";
+        userDetails.kids = false;
+        userDetails.preferences = 41;
+        userDetails.date_of_birth = Date.now;
+        userDetails.language = "english";
 
-pm.test("Response has the correct error message when userId is not provided", function () {
-    const responseData = pm.response.json();
+        const login = await axios.post(loginURL, userDetails);
+        token = login.data.token;
+    });
 
-    pm.expect(responseData.error).to.eql("Please provide the user id in the URL");
-});
+    it("Response status code is 202 on valid request with existing account Id", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(409);
+            expect(response.data).toEqual({
+                message: "Provided account ID was successful.",
+            });
+        } catch (error) {
+            console.log("ERROR:" + error);
+        }
+    });
 
-// checking for a case when the profileId is invalid
-pm.test("Response status code is 401 when profileId is not valid", function () {
-    pm.expect(pm.response.code).to.equal(401);
-});
+    it("Response status code is 401 on valid request with non-existing account Id", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(401);
+            expect(response.data).toEqual({
+                message: "Provided account ID is non-existing.",
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-pm.test("Response has the correct error message when profileId is not valid", function () {
-    const responseData = pm.response.json();
+    it("Response should have profiles array", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(401);
+            expect(response.data).toEqual({
+                message: ""
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-    pm.expect(responseData.error).to.eql("Please provide the profile id in the URL");
-});
+    it("Every profile object should have necessary fields", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(401);
+            expect(response.data).toEqual({
+                message: "The profile have necessary fields.",
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-// checking for a case when there is no profile for the provided profileId
-pm.test("Response status code is 404 when no profile is found for the given profileId", function () {
-    pm.expect(pm.response.code).to.equal(404);
-});
+    it("Response status code is 401 when account Id is not provided", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(401);
+            expect(response.data).toEqual({
+                message: "Account ID not provided."
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-pm.test("Response has the correct error message when no profile is found for the given profileId", function () {
-    const responseData = pm.response.json();
+    it("Response has specific error message when account Id is not provided", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(401);
+            expect(response.data).toEqual({
+                message: "Account ID is not provided."
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 
-    pm.expect(responseData.error).to.eql("No profile found with this name");
-});
-
-// checking for internal server error 
-pm.test("Response status code is 500 when internal server error occurs", function () {
-    pm.expect(pm.response.code).to.equal(500);
-});
-
-pm.test("Response has the correct error message when internal server error occurs", function () {
-    const responseData = pm.response.json();
-
-    pm.expect(responseData.error).to.eql("Internal server error");
-});
-
-// checking for a case when a profileId is not provided
-pm.test("Response status code is 401 when profileId is not provided", function () {
-    pm.expect(pm.response.code).to.equal(401);
-});
-
-pm.test("Response has the correct error message when profileId is not provided", function () {
-    const responseData = pm.response.json();
-
-    pm.expect(responseData.error).to.eql("Please provide the profile id in the URL");
-});
-
-// checking for a case when the userId is not valid
-pm.test("Response status code is 401 when userId is not valid", function () {
-    pm.expect(pm.response.code).to.equal(401);
-});
-
-pm.test("Response has the correct error message when userId is not valid", function () {
-    const responseData = pm.response.json();
-
-    pm.expect(responseData.error).to.eql("Please provide the user id in the URL");
-});
-
-// checking for a case when there is no user for the provided userId
-pm.test("Response status code is 401 when no user is found for the given userId", function () {
-    pm.expect(pm.response.code).to.equal(401);
-});
-
-pm.test("Response has the correct error message when no user is found for the given userId", function () {
-    const responseData = pm.response.json();
-
-    pm.expect(responseData.error).to.eql("No user found with this id");
-});
-
-// checking response headers for successful delete
-pm.test("Content-Type header is present", function () {
-    pm.expect(pm.response.headers.get('Content-Type')).to.be.ok;
-});
-
-pm.test("Content-Type header is application/json", function () {
-    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+    it("Response time is less than 200ms", async () => {
+        try {
+            const response = await axios.post(profileURL, userDetails, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(200);
+            expect(response.data).toEqual({
+                message: "Response time is less than 200ms",
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    });
 });
