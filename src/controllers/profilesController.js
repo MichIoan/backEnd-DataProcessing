@@ -9,12 +9,16 @@ const getProfileInformation = async (req, res) => {
         const profileId = req.params.profileId;
 
         if (!userId) {
-            response(req, res, 401, { error: "Please provide the user id as a parameter in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the user id as a parameter in the URL"
+            });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 401, { error: "Please provide the profileId as a parameter in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the profileId as a parameter in the URL"
+            });
             return;
         }
 
@@ -25,7 +29,9 @@ const getProfileInformation = async (req, res) => {
         })
 
         if (!existingUser) {
-            response(req, res, 401, { error: "No user found with this id" });
+            response(req, res, 401, {
+                error: "No user found with this id"
+            });
             return;
         }
 
@@ -37,16 +43,22 @@ const getProfileInformation = async (req, res) => {
         });
 
         if (!profile) {
-            response(req, res, 401, { error: "No profile found with this id" });
+            response(req, res, 401, {
+                error: "No profile found with this id"
+            });
             return;
         }
 
-        response(req, res, 202, { profile });
+        response(req, res, 202, {
+            profile
+        });
         return;
 
     } catch (error) {
         console.log(error);
-        response(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, {
+            error: "Internal server error"
+        });
         return;
     }
 }
@@ -55,7 +67,9 @@ const getAccountProfiles = async (req, res) => {
     const userId = req.params.userId;
 
     if (!userId) {
-        response(req, res, 401, { error: "Please provide user id as parameter in the URL" });
+        response(req, res, 401, {
+            error: "Please provide user id as parameter in the URL"
+        });
         return;
     }
 
@@ -67,15 +81,21 @@ const getAccountProfiles = async (req, res) => {
         });
 
         if (!profiles) {
-            response(req, res, 401, { error: "No profiles found" });
+            response(req, res, 401, {
+                error: "No profiles found"
+            });
             return;
         }
 
-        response(req, res, 202, { profiles });
+        response(req, res, 202, {
+            profiles
+        });
         return;
     } catch (error) {
         console.log(error);
-        response(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, {
+            error: "Internal server error"
+        });
         return;
     }
 }
@@ -91,7 +111,9 @@ const createProfile = async (req, res) => {
         });
 
         if (!existingUser) {
-            response(req, res, 404, { error: "User not found" });
+            response(req, res, 404, {
+                error: "User not found"
+            });
             return;
         }
         const check = await Profile.findOne({
@@ -102,7 +124,9 @@ const createProfile = async (req, res) => {
         });
 
         if (check) {
-            response(req, res, 409, { error: "Profile with this name already exists" });
+            response(req, res, 409, {
+                error: "Profile with this name already exists"
+            });
             return;
         } else {
             const profile = await Profile.create({
@@ -115,13 +139,25 @@ const createProfile = async (req, res) => {
                 language: profileDetails.language,
             });
 
-            response(req, res, 201, { message: "Profile created successfully" });
+            response(req, res, 201, {
+                message: "Profile created successfully"
+            });
             return;
         }
     } catch (error) {
-        console.error(error);
-        response(req, res, 500, { error: "Internal server error" });
-        return;
+        if (error.message.includes('User has reached the profile limit.')) {
+            console.log(error);
+            response(req, res, 400, {
+                error: "User has reached the maximum number of profiles allowed."
+            });
+            return;
+        } else {
+            console.log(error);
+            response(req, res, 500, {
+                error: "Internal server error"
+            });
+            return;
+        }
     }
 };
 
@@ -132,12 +168,16 @@ const modifyProfile = async (req, res) => {
         const profileId = req.params.profileId;
 
         if (!userId) {
-            response(req, res, 401, { error: "Please provide the user id in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the user id in the URL"
+            });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 401, { error: "Please provide the profile id in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the profile id in the URL"
+            });
             return;
         }
 
@@ -149,7 +189,9 @@ const modifyProfile = async (req, res) => {
         });
 
         if (!existingProfile) {
-            response(req, res, 404, { error: "No profile found" });
+            response(req, res, 404, {
+                error: "No profile found"
+            });
             return;
         }
 
@@ -162,22 +204,27 @@ const modifyProfile = async (req, res) => {
 
         if (updatedProfileData) {
             await Profile.update(updatedProfileData, {
-                where:
-                {
+                where: {
                     profile_id: profileId,
                     user_id: userId
                 }
             });
 
-            response(req, res, 200, { message: "Profile updated successfully!" });
+            response(req, res, 200, {
+                message: "Profile updated successfully!"
+            });
             return;
         } else {
-            response(req, res, 200, { message: "No settings updated" });
+            response(req, res, 200, {
+                message: "No settings updated"
+            });
             return;
         }
     } catch (error) {
         console.log(error);
-        response(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, {
+            error: "Internal server error"
+        });
         return;
     }
 }
@@ -189,12 +236,16 @@ const modifyPreferences = async (req, res) => {
         const preferences = req.body;
 
         if (!userId) {
-            response(req, res, 400, { error: "Please provide the user id in the URL" });
+            response(req, res, 400, {
+                error: "Please provide the user id in the URL"
+            });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 400, { error: "Please provide the profile id in the URL" });
+            response(req, res, 400, {
+                error: "Please provide the profile id in the URL"
+            });
             return;
         }
 
@@ -206,7 +257,9 @@ const modifyPreferences = async (req, res) => {
         });
 
         if (!existingProfile) {
-            response(req, res, 401, { message: "No profile found for this id" });
+            response(req, res, 401, {
+                message: "No profile found for this id"
+            });
             return;
         }
 
@@ -217,24 +270,29 @@ const modifyPreferences = async (req, res) => {
         if (updatedPreferences.viewing_classification) updatedPreferences.viewing_classification = preferences.viewing_classification;
 
         if (!updatedPreferences) {
-            response(req, res, 200, { message: "No preferences were modified" });
+            response(req, res, 200, {
+                message: "No preferences were modified"
+            });
             return;
         }
 
         if (updatedPreferences) {
             await Preferences.update(updatedPreferences, {
-                where:
-                {
+                where: {
                     profile_id: profileId,
                 }
             });
         }
 
-        response(req, res, 202, { message: "Profile's preferences successfully modified" });
+        response(req, res, 202, {
+            message: "Profile's preferences successfully modified"
+        });
         return;
     } catch (error) {
         console.log(error);
-        response(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, {
+            error: "Internal server error"
+        });
         return;
     }
 }
@@ -243,37 +301,53 @@ const deleteProfile = async (req, res) => {
     try {
         const profileId = req.params.profileId;
         const userId = req.params.userId;
-
+        
         if (!profileId) {
-            response(req, res, 401, { error: "Please provide the profile id in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the profile id in the URL"
+            });
             return;
         }
 
         if (!userId) {
-            response(req, res, 401, { error: "Please provide the user id in the URL" });
+            response(req, res, 401, {
+                error: "Please provide the user id in the URL"
+            });
             return;
         }
 
         const destroyed = await Profile.destroy({
-            where:
-            {
+            where: {
                 profile_id: profileId,
                 user_id: userId,
             }
         });
 
         if (!destroyed) {
-            response(req, res, 404, { error: "No profile found with this name" });
+            response(req, res, 404, {
+                error: "No profile found with this name"
+            });
             return;
         }
 
-        response(req, res, 204, { message: "Profile deleted successfully" });
+        response(req, res, 204, {
+            message: "Profile deleted successfully"
+        });
         return;
     } catch (error) {
         console.log(error);
-        response(req, res, 500, { error: "Internal server error" });
+        response(req, res, 500, {
+            error: "Internal server error"
+        });
         return;
     }
 }
 
-module.exports = { createProfile, modifyProfile, modifyPreferences, getProfileInformation, getAccountProfiles, deleteProfile };
+module.exports = {
+    createProfile,
+    modifyProfile,
+    modifyPreferences,
+    getProfileInformation,
+    getAccountProfiles,
+    deleteProfile
+};
