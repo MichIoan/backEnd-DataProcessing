@@ -9,12 +9,12 @@ const getProfileInformation = async (req, res) => {
         const profileId = req.params.profileId;
 
         if (!userId) {
-            response(req, res, 401, { error: "Please provide the user id as a parameter in the URL" });
+            response(req, res, 400, { error: "User ID parameter is missing in the URL." });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 401, { error: "Please provide the profileId as a parameter in the URL" });
+            response(req, res, 400, { error: "Profile ID parameter is missing in the URL." });
             return;
         }
 
@@ -84,6 +84,12 @@ const createProfile = async (req, res) => {
     try {
         const profileDetails = req.body;
         const userId = req.params.userId;
+
+        if (!userId) {
+            response(req, res, 401, { error: "User ID parameter is missing in the URL." });
+            return;
+        }
+
         const existingUser = await User.findOne({
             where: {
                 user_id: userId,
@@ -91,9 +97,10 @@ const createProfile = async (req, res) => {
         });
 
         if (!existingUser) {
-            response(req, res, 404, { error: "User not found" });
+            response(req, res, 401, { error: "User not found" });
             return;
         }
+
         const check = await Profile.findOne({
             where: {
                 user_id: userId,
@@ -102,7 +109,7 @@ const createProfile = async (req, res) => {
         });
 
         if (check) {
-            response(req, res, 409, { error: "Profile with this name already exists" });
+            response(req, res, 401, { error: "Profile with this name already exists" });
             return;
         } else {
             const profile = await Profile.create({
@@ -115,13 +122,21 @@ const createProfile = async (req, res) => {
                 language: profileDetails.language,
             });
 
+            if (!profile) {
+                response(req, res, 409, { error: "Profile not created, please try again" });
+            }
+
             response(req, res, 201, { message: "Profile created successfully" });
             return;
         }
     } catch (error) {
-        console.error(error);
-        response(req, res, 500, { error: "Internal server error" });
-        return;
+        if (error.message.includes('User has reached the profile limit.')) {
+            response(req, res, 400, { error: "User has reached the maximum number of profiles allowed." });
+            return;
+        } else {
+            response(req, res, 500, { error: "Internal server error" });
+            return;
+        }
     }
 };
 
@@ -132,12 +147,12 @@ const modifyProfile = async (req, res) => {
         const profileId = req.params.profileId;
 
         if (!userId) {
-            response(req, res, 401, { error: "Please provide the user id in the URL" });
+            response(req, res, 400, { error: "User ID parameter is missing in the URL." });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 401, { error: "Please provide the profile id in the URL" });
+            response(req, res, 400, { error: "Profile ID parameter is missing in the URL." });
             return;
         }
 
@@ -149,7 +164,7 @@ const modifyProfile = async (req, res) => {
         });
 
         if (!existingProfile) {
-            response(req, res, 404, { error: "No profile found" });
+            response(req, res, 401, { error: "No profile found" });
             return;
         }
 
@@ -189,12 +204,12 @@ const modifyPreferences = async (req, res) => {
         const preferences = req.body;
 
         if (!userId) {
-            response(req, res, 400, { error: "Please provide the user id in the URL" });
+            response(req, res, 401, { error: "User ID parameter is missing in the URL." });
             return;
         }
 
         if (!profileId) {
-            response(req, res, 400, { error: "Please provide the profile id in the URL" });
+            response(req, res, 401, { error: "Profile ID parameter is missing in the URL." });
             return;
         }
 
@@ -206,7 +221,7 @@ const modifyPreferences = async (req, res) => {
         });
 
         if (!existingProfile) {
-            response(req, res, 401, { message: "No profile found for this id" });
+            response(req, res, 401, { message: "No profile found for this ID" });
             return;
         }
 
@@ -230,7 +245,7 @@ const modifyPreferences = async (req, res) => {
             });
         }
 
-        response(req, res, 202, { message: "Profile's preferences successfully modified" });
+        response(req, res, 200, { message: "Profile's preferences successfully modified" });
         return;
     } catch (error) {
         console.log(error);
@@ -263,11 +278,11 @@ const deleteProfile = async (req, res) => {
         });
 
         if (!destroyed) {
-            response(req, res, 404, { error: "No profile found with this name" });
+            response(req, res, 401, { error: "No profile found with this name" });
             return;
         }
 
-        response(req, res, 204, { message: "Profile deleted successfully" });
+        response(req, res, 200, { message: "Profile deleted successfully" });
         return;
     } catch (error) {
         console.log(error);

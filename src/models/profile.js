@@ -30,7 +30,7 @@ const Profile = sequelize.define('Profile', {
 },
     {
         timestamps: false,
-        tableName: 'Profile',
+        tableName: 'Profiles',
     });
 
 module.exports = Profile;
