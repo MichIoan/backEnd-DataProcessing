@@ -19,4 +19,9 @@ function isValidPassword(password) {
     return passwordRegex.test(password);
 }
 
-module.exports = { isEmail, isValidPassword }
+function isValidInt(value) {
+    const number = Number(value);
+    return Number.isInteger(number);
+}
+
+module.exports = { isEmail, isValidPassword, isValidInt }

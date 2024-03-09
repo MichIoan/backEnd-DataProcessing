@@ -7,11 +7,12 @@ const isAuth = require('../middlewares/isAuth');
 
 router.use(isAuth);
 
-//subscrption routes
-//router.post('/:userId/subscription/choose-plan', subscriptionController.changeSubscription);
+//subscription routes
+router.patch('/:userId/subscription/change-plan', subscriptionController.changeSubscription);
 
-router.get("/info", subscriptionController.getSubscriptionInfo);
+router.get("/:userId/subscription/info", subscriptionController.getSubscriptionInfo);
 
+router.patch("/:userId/subscription/renew", subscriptionController.renewSubscription);
 
 //profile routes
 router.post('/:userId/profiles/:profileId/info', profilesController.getProfileInformation);
