@@ -69,7 +69,7 @@ const login = async (req, res) => {
     const password = req.body.password;
 
     if (!isEmail(email)) {
-      response(req, res, 401, { error: "Invalid email format" });
+      response(req, res, 400, { error: "Invalid email format" });
       return;
     }
 
@@ -80,12 +80,12 @@ const login = async (req, res) => {
     });
 
     if (!existingUser) {
-      response(req, res, 404, { error: 'User not found' });
+      response(req, res, 400, { error: 'User not found' });
       return;
     }
 
     if (existingUser.status == 'not_activated') {
-      response(req, res, 403, { error: 'Please activate the account first' });
+      response(req, res, 400, { error: 'Please activate the account first' });
       return;
     }
 
@@ -98,7 +98,7 @@ const login = async (req, res) => {
           failed_login_attempts: 0,
         })
       } else {
-        response(req, res, 403, { error: `Your account is locked until ${existingUser.locked_until}` });
+        response(req, res, 400, { error: `You have failed to login for 3 times, your account has been locked for an hour.` });
         return;
       }
     }
@@ -118,7 +118,7 @@ const login = async (req, res) => {
           failed_login_attempts: counter
         });
 
-        response(req, res, 403, { error: `You have failed to login for 3 times, you account has been locked for an hour.` });
+        response(req, res, 400, { error: `You have failed to login for 3 times, you account has been locked for an hour.` });
         return;
       }
 
@@ -128,7 +128,7 @@ const login = async (req, res) => {
 
       const leftAttempts = 3 - counter;
 
-      response(req, res, 401, { error: `Invalid password. You have ${leftAttempts} attempts left.` });
+      response(req, res, 400, { error: `Invalid password. You have ${leftAttempts} attempts left.` });
       return;
     }
 

@@ -11,7 +11,7 @@ const app = express();
 app.use(xmlparser());
 
 app.use((req, res, next) => {
-    const contentType = req.get('Content-Type');
+    const contentType = req.get('Accept');
     req.isXml = contentType && contentType.includes('application/xml');
 
     if (req.isXml && req.body && typeof req.body === 'object') {
@@ -52,8 +52,8 @@ app.use("/auth", authRoutes);
 const userRoutes = require('./src/routes/userRoutes');
 app.use("/users", userRoutes);
 
-//const contentRoutes = require('./src/routes/mainPage');
-//app.use("/content", contentRoutes);
+const contentRoutes = require('./src/routes/contentRoutes');
+app.use("/content", contentRoutes);
 
 const port = process.env.PORT;
 
