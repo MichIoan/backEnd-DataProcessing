@@ -8,11 +8,21 @@ const resetPasswordEmail = async (req, res) => {
     try {
         const email = req.body.email;
 
+        if (!email) {
+            response(req, res, 401, { message: "No email has been found in the request body" });
+            return;
+        }
+
         const existingUser = await User.findOne({
             where: {
                 email: email,
             },
         });
+
+        if (!existingUser) {
+            response(req, res, 401, { error: "No user has been found for this email" });
+            return;
+        }
 
         const token = jwt.sign(
             { userId: existingUser.id, email: existingUser.email },
@@ -63,14 +73,23 @@ async function sendResetPassEmail(email, link) {
 }
 
 const updatePassword = async (req, res) => {
+
+    if (!req.body.password) {
+        response(req, res, 401, { message: "The new password has to be sent in the request body" });
+        return;
+    }
+
     const token = req.query.token;
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
+    if (!token) {
+        response(req, res, 401, { message: "No token has been found in the URL" });
+        return;
+    }
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
-
         const email = decoded.email;
-
         const existingUser = await User.findOne({
             where: {
                 email: email
@@ -78,7 +97,7 @@ const updatePassword = async (req, res) => {
         });
 
         if (!existingUser) {
-            response(req, res, 404, { error: 'User not found' });
+            response(req, res, 401, { error: 'User not found' });
             return;
         }
 

@@ -1,5 +1,3 @@
-const xmlparser = require('express-xml-bodyparser');
-
 const xmlToJsonMiddleware = (req, res, next) => {
     if (req.isXml && req.body) {
         const rootTag = Object.keys(req.body)[0];

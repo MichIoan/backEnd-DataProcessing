@@ -5,10 +5,13 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const response = require('../utilities/response');
 const { isEmail, isValidPassword } = require('../utilities/validate');
+const checkReferralCode = require('../utilities/checkReferralCode');
+const Subscription = require('../models/subscription');
 
 const register = async (req, res) => {
   try {
     const email = req.body.email;
+    const discountCode = req.body.discountCode;
 
     if (!isEmail(email)) {
       response(req, res, 401, { error: "Invalid email format!" });
@@ -18,7 +21,7 @@ const register = async (req, res) => {
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
-      response(req, res, 409, { error: 'User with this email already exists' });
+      response(req, res, 401, { error: 'User with this email already exists' });
       return;
     }
 
@@ -27,10 +30,15 @@ const register = async (req, res) => {
       return;
     }
 
+    let hasDiscount;
+    if (checkReferralCode(discountCode)) {
+      hasDiscount = true;
+    }
+
     const password = await bcrypt.hash(req.body.password, 10);
     const referral_code = await generateUniqueReferralCode(email);
     const token = jwt.sign({ email: req.body.email }, process.env.JWT_KEY, { expiresIn: '1d' });
-    const verificationLink = `localhost:8081/auth/activateAccount?token=${token}`;
+    const verificationLink = `localhost:8081/auth/activate?token=${token}`;
 
     await sendVerificationEmail(req.body.email, verificationLink);
 
@@ -38,6 +46,7 @@ const register = async (req, res) => {
       email: email,
       password: password,
       referral_code: referral_code,
+      has_discount: hasDiscount,
     });
 
     if (!newUser) {
@@ -48,6 +57,7 @@ const register = async (req, res) => {
     response(req, res, 201, { message: 'User registered successfully. Activate account from email!' });
     return;
   } catch (error) {
+    console.log(error);
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
@@ -79,8 +89,8 @@ const login = async (req, res) => {
       return;
     }
 
+    const timeNow = new Date();
     if (existingUser.status == "suspended") {
-      const timeNow = new Date();
       if (timeNow > existingUser.locked_until) {
         existingUser.update({
           status: 'active',
@@ -113,13 +123,28 @@ const login = async (req, res) => {
       }
 
       existingUser.update({
-        failed_login_attempts: counter
+        failed_login_attempts: counter,
       });
 
       const leftAttempts = 3 - counter;
 
       response(req, res, 401, { error: `Invalid password. You have ${leftAttempts} attempts left.` });
       return;
+    }
+
+    const userSub = await Subscription.findOne({
+      where: {
+        user_id: existingUser.user_id,
+      }
+    });
+
+    const end_date = new Date(userSub.end_date);
+
+    if (end_date < timeNow) {
+      console.log('EXPIRED');
+      await userSub.update({
+        status: 'inactive'
+      });
     }
 
     const token = jwt.sign(
@@ -136,6 +161,7 @@ const login = async (req, res) => {
     response(req, res, 200, { message: 'Login successful', token: token });
     return;
   } catch (error) {
+    console.log(error);
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
