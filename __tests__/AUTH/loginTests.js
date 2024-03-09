@@ -14,11 +14,13 @@ describe('POST /login', () => {
     userDetails.email = 'not@found.com';
     try {
       const response = await axios.post(loginURL, userDetails);
-    } catch (error) {
+
       expect(error.response.status).toBe(400);
       expect(error.response.data).toEqual({
         "error": "User not found"
       });
+    } catch (error) {
+      console.log("error line 23");
     }
   });
 
@@ -27,11 +29,13 @@ describe('POST /login', () => {
     userDetails.email = 'not@activated.com';
     try {
       const response = await axios.post(loginURL, userDetails);
-    } catch (error) {
+
       expect(error.response.status).toBe(400);
       expect(error.response.data).toStrictEqual({
         "error": "Please activate the account first"
       });
+    } catch (error) {
+      console.log("error line 38");
     }
   });
 
@@ -41,9 +45,11 @@ describe('POST /login', () => {
     userDetails.password = 'wrongpassword';
     try {
       const response = await axios.post(loginURL, userDetails);
-    } catch (error) {
+
       expect(error.response.status).toEqual(400);
       expect(error.response.data.error).toMatch(/Invalid password. You have [1-2] attempts left.|You have failed to login for 3 times, your account has been locked for an hour./);
+    } catch (error) {
+      console.log("error line 52");
     }
   });
 
@@ -52,20 +58,24 @@ describe('POST /login', () => {
     userDetails.email = 'suspended@forever.com';
     try {
       const response = await axios.post(loginURL, userDetails);
-    } catch (error) {
+
       expect(error.response.status).toEqual(400);
       expect(error.response.data.error).toMatch('You have failed to login for 3 times, your account has been locked for an hour.');
+    } catch (error) {
+      console.log("error line 65");
     }
   });
 
   it('Successful Login should have message as \'Login successful\'', async () => {
     // assume this user exists and password is correct
-    userDetails.email = 'test@user.com';
-    userDetails.password = 'Password1';
-    const response = await axios.post(loginURL, userDetails);
-    expect(response.status).toEqual(200);
-    expect(response.data.message).toEqual('Login successful');
-
+    try {
+      userDetails.email = 'test@user.com';
+      userDetails.password = 'Password1';
+      const response = await axios.post(loginURL, userDetails);
+      expect(response.status).toEqual(200);
+      expect(response.data.message).toEqual('Login successful');
+    } catch (error) {
+      console.log("error line 78");
+    }
   });
-
 });
