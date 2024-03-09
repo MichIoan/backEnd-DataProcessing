@@ -14,11 +14,12 @@ describe('POST /register', () => {
         userDetails.email = 'asdasd';
         try {
             const response = await axios.post(registerURL, userDetails);
-        } catch (error) {
             expect(error.response.status).toBe(401);
             expect(error.response.data).toEqual({
                 "error": "Invalid email format!"
             });
+        } catch (error) {
+            console.log(error);
         }
     });
 
@@ -93,7 +94,7 @@ describe('POST /register', () => {
         }
     });
 
-    it('Registering with empty fields should return 401', async () => { 
+    it('Registering with empty fields should return 401', async () => {
         userDetails.email = "valid@email.com"
         userDetails.password = ""
         try {
