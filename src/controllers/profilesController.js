@@ -278,12 +278,6 @@ const modifyPreferences = async (req, res) => {
             return;
         }
 
-        // const updatedPreferences = [];
-        // if (updatedPreferences.content_type) updatedPreferences.content_type = preferences.content_type;
-        // if (updatedPreferences.genre) updatedPreferences.genre = preferences.genre;
-        // if (updatedPreferences.minimum_age) updatedPreferences.minimum_age = preferences.minimum_age;
-        // if (updatedPreferences.viewing_classification) updatedPreferences.viewing_classification = preferences.viewing_classification;
-
         if (Object.keys(preferences).length === 0) {
             response(req, res, 200, {
                 message: "No preferences were modified"

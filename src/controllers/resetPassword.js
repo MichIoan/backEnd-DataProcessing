@@ -3,19 +3,20 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/user');
 const response = require('../utilities/response');
+const { isValidInt, isValidPassword } = require('../utilities/validate');
 
 const resetPasswordEmail = async (req, res) => {
     try {
-        const email = req.body.email;
+        const userId = req.params.userId;
 
-        if (!email) {
-            response(req, res, 401, { message: "No email has been found in the request body" });
+        if (!isValidInt(userId)) {
+            response(req, res, 400, { message: "URL parameter is not a valid integer" });
             return;
         }
 
         const existingUser = await User.findOne({
             where: {
-                email: email,
+                user_id: userId,
             },
         });
 
@@ -75,15 +76,20 @@ async function sendResetPassEmail(email, link) {
 const updatePassword = async (req, res) => {
 
     if (!req.body.password) {
-        response(req, res, 401, { message: "The new password has to be sent in the request body" });
+        response(req, res, 400, { message: "The new password has to be sent in the request body" });
         return;
     }
+
+    if (!isValidPassword(req.body.password)) {
+        response(req, res, 400, { message: "Password should contain one capital, 6 character and a number!" });
+        return;
+    };
 
     const token = req.query.token;
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     if (!token) {
-        response(req, res, 401, { message: "No token has been found in the URL" });
+        response(req, res, 403, { message: "No token has been found in the URL" });
         return;
     }
 

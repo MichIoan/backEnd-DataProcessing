@@ -16,7 +16,7 @@ router.get('/activate', authController.emailVerification);
 
 router.post('/login', authController.login);
 
-router.post('/password-reset-request', [
+router.post('/:userId/reset_password', [
     body('email')
         .isEmail()
         .withMessage()

@@ -162,7 +162,7 @@ const renewSubscription = async (req, res) => {
     });
 
     if (!subscription) {
-      response(req, res, 403, { error: "No subscription found for this user, please try again." });
+      response(req, res, 404, { error: "No subscription found for this user, please try again." });
       return;
     }
 
