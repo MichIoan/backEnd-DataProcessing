@@ -1,7 +1,7 @@
 const Series = require('../models/series');
 const Media = require('../models/media');
 const response = require('../utilities/response');
-const isValidInt = require('../utilities/validate');
+const { isValidInt } = require('../utilities/validate');
 
 const getMovies = async (req, res) => {
     try {
@@ -12,14 +12,17 @@ const getMovies = async (req, res) => {
         });
 
         if (movies.length === 0) {
-            response(res, 200, { message: "No movies found." });
+            response(req, res, 200, { message: "No movies found." });
+            return;
         } else {
-            response(res, 200, { movies: movies });
+            response(req, res, 200, { movies: movies });
+            return;
         }
     }
     catch (err) {
         console.log(err);
         response(res, 500, { error: 'Internal server error' });
+        return;
     }
 }
 
@@ -28,18 +31,21 @@ const getSeries = async (req, res) => {
         const series = await Series.findAll();
 
         if (series.length === 0) {
-            response(res, 200, { message: 'You have no series in your database.' });
+            response(req, res, 200, { message: 'You have no series in your database.' });
+            return;
         } else {
-            response(res, 200, { series: series });
+            response(req, res, 200, { series: series });
+            return;
         }
     }
     catch (err) {
         response(res, 500, { error: 'Server error' });
+        return;
     }
 }
 
 const getMovieById = async (req, res) => {
-    const movieId = req.param.movieId;
+    const movieId = req.params.movieId;
 
     if (!movieId) {
         response(req, res, 400, { message: "Please provide the movieId in URL" });
@@ -75,7 +81,7 @@ const getMovieById = async (req, res) => {
 
 const getSeriesById = async (req, res) => {
     try {
-        const seriesId = req.param.seriesId;
+        const seriesId = req.params.seriesId;
 
         if (!seriesId) {
             response(req, res, 400, { message: "Please provide the series id as a parameter" });
@@ -106,8 +112,8 @@ const getSeriesById = async (req, res) => {
 }
 
 const startMovie = async (req, res) => {
-    const profileId = req.param.profileId;
-    const movieId = req.param.movieId;
+    const profileId = req.params.profileId;
+    const movieId = req.params.movieId;
 
     if (!profileId || !movieId) {
         response(req, res, 400, { message: "Please provide all the parameters in the URL" });
@@ -134,8 +140,8 @@ const startMovie = async (req, res) => {
 }
 
 const endMovie = async (req, res) => {
-    const profileId = req.param.profileId;
-    const movieId = req.param.movieId;
+    const profileId = req.params.profileId;
+    const movieId = req.params.movieId;
 
     if (!profileId || !movieId) {
         response(req, res, 400, { message: "Please provide all the parameters in the URL" });
@@ -174,10 +180,10 @@ const endMovie = async (req, res) => {
 }
 
 const startSeriesEpisode = async (req, res) => {
-    const profileId = req.param.profileId;
-    const seriesId = req.param.seriesId;
-    const season = req.param.season;
-    const episode = req.param.episode;
+    const profileId = req.params.profileId;
+    const seriesId = req.params.seriesId;
+    const season = req.params.season;
+    const episode = req.params.episode;
 
     if (!profileId || !seriesId || !season || !episode) {
         response(req, res, 400, { message: "Please provide all the parameters in the URL" });
@@ -222,10 +228,10 @@ const startSeriesEpisode = async (req, res) => {
 }
 
 const endSeriesEpisode = async (req, res) => {
-    const profileId = req.param.profileId;
-    const seriesId = req.param.seriesId;
-    const season = req.param.season;
-    const episode = req.param.episode;
+    const profileId = req.params.profileId;
+    const seriesId = req.params.seriesId;
+    const season = req.params.season;
+    const episode = req.params.episode;
 
     if (!profileId || !seriesId || !season || !episode) {
         response(req, res, 400, { message: "Please provide all the parameters in the URL" });
@@ -270,7 +276,7 @@ const endSeriesEpisode = async (req, res) => {
 }
 
 const getWatchHistory = async (req, res) => {
-    const profileId = req.param.profileId;
+    const profileId = req.params.profileId;
 
     if (!profileId) {
         response(req, res, 400, { message: "Please provide the profile id in the URL" });
@@ -293,7 +299,7 @@ const getWatchHistory = async (req, res) => {
 }
 
 const getWatchList = async (req, res) => {
-    const profileId = req.param.profileId;
+    const profileId = req.params.profileId;
 
     if (!profileId) {
         response(req, res, 400, { message: "Please provide the profile id in the URL" });

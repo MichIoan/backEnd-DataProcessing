@@ -14,19 +14,19 @@ const register = async (req, res) => {
     const discountCode = req.body.discountCode;
 
     if (!isEmail(email)) {
-      response(req, res, 401, { error: "Invalid email format!" });
+      response(req, res, 400, { error: "Invalid email format!" });
       return;
     }
 
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
-      response(req, res, 401, { error: 'User with this email already exists' });
+      response(req, res, 400, { error: 'User with this email already exists' });
       return;
     }
 
     if (!isValidPassword(req.body.password)) {
-      response(req, res, 401, { error: "Password must contain at least 1 capital, a number and 6 characters" });
+      response(req, res, 400, { error: "Password must contain at least 1 capital, a number and 6 characters" });
       return;
     }
 

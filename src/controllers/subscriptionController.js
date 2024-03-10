@@ -2,31 +2,21 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Subscription = require("../models/subscription");
 const response = require("../utilities/response");
+const { isValidInt } = require('../utilities/validate');
 
 const getSubscriptionInfo = async (req, res) => {
   try {
-    const jwtToken = getToken(req);
+    const userId = req.params.userId;
 
-    if (!jwtToken) {
-      response(req, res, 404, { error: "No JWT token found in the Header" });
+    if (!userId) {
+      response(req, res, 400, { message: "Please provide the user id as a parameter" });
       return;
     }
 
-    const decoded = jwt.verify(jwtToken, process.env.JWT_KEY);
-
-    const email = decoded.email;
-
-    const existingUser = await User.findOne({
-      where: {
-        email: email,
-      },
-    });
-
-    if (!existingUser) {
-      response(req, res, 404, { error: "No user found with this email" });
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
+      return;
     }
-
-    const userId = existingUser.account_id;
 
     const subscription = await Subscription.findOne({
       where: {
@@ -35,21 +25,20 @@ const getSubscriptionInfo = async (req, res) => {
     });
 
     if (!subscription) {
-      response(req, res, 404, { message: "No subscription was found for this user." });
+      response(req, res, 400, { error: "No subscription was found for this user." });
       return;
     }
 
-    const subscriptionInfo = [];
+    const subscriptionData = [];
 
-    subscriptionInfo.push(
-      subscription.price,
-      subscription.type,
-      subscription.subscription_status,
+    subscriptionData.push(subscription.description,
       subscription.end_date,
-      subscription.description
-    );
+      subscription.price,
+      subscription.start_date,
+      subscription.status,
+      subscription.type);
 
-    response(req, res, 200, subscription);
+    response(req, res, 200, subscriptionData);
     return;
   } catch (err) {
     console.log(err);
@@ -70,6 +59,11 @@ const changeSubscription = async (req, res) => {
 
     if (!subscriptionPlan) {
       response(req, res, 400, { error: "Please specify in the body the new subscription plan" });
+      return;
+    }
+
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
       return;
     }
 
@@ -150,6 +144,11 @@ const renewSubscription = async (req, res) => {
       return;
     }
 
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
+      return;
+    }
+
     const user = await User.findOne({
       where: {
         user_id: userId
@@ -163,7 +162,7 @@ const renewSubscription = async (req, res) => {
     });
 
     if (!subscription) {
-      response(req, res, 403, { error: "No subscription found for this user, please try again." });
+      response(req, res, 404, { error: "No subscription found for this user, please try again." });
       return;
     }
 

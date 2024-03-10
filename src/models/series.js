@@ -16,15 +16,15 @@ const Series = sequelize.define('Series', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    viewing_classification: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: false
-    },
     start_date: {
         type: DataTypes.DATE,
         allowNull: false
     },
     genre: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false
+    },
+    viewing_classification: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false
     }
