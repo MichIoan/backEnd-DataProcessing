@@ -1,7 +1,7 @@
 const Series = require('../models/series');
 const Media = require('../models/media');
 const response = require('../utilities/response');
-const isValidInt = require('../utilities/validate');
+const { isValidInt } = require('../utilities/validate');
 
 const getMovies = async (req, res) => {
     try {

@@ -5,13 +5,8 @@ const userDetails = {
     password: "Password1"
 };
 const registerURL = `http://localhost:8081/auth/register`;
-let usersToDelete;
 
 describe('POST /register', () => {
-
-    it("Delete the user before tests", async () => {
-        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [userDetails.email]);
-    })
 
     it('Register user with invalid email format should return 400', async () => {
         userDetails.email = 'asdasd';
@@ -48,10 +43,6 @@ describe('POST /register', () => {
         }
     });
 
-    it("Delete users created in the last test", async () => {
-        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [usersToDelete]);
-    });
-
     it("Register user with invalid password should return 400", async () => {
         // Add logic here to attempt registering a new user with invalid password
         userDetails.email = 'correct@email.com'
@@ -79,7 +70,7 @@ describe('POST /register', () => {
         }
     });
 
-    it("Delete user and close db conn after all tests ran", async () => {
+    afterAll(async () => {
         await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [userDetails.email])
         pool.end();
     });

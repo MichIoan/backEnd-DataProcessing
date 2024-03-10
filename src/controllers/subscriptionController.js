@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const Subscription = require("../models/subscription");
 const response = require("../utilities/response");
+const { isValidInt } = require('../utilities/validate');
 
 const getSubscriptionInfo = async (req, res) => {
   try {
@@ -9,6 +10,11 @@ const getSubscriptionInfo = async (req, res) => {
 
     if (!userId) {
       response(req, res, 400, { message: "Please provide the user id as a parameter" });
+      return;
+    }
+
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
       return;
     }
 
@@ -53,6 +59,11 @@ const changeSubscription = async (req, res) => {
 
     if (!subscriptionPlan) {
       response(req, res, 400, { error: "Please specify in the body the new subscription plan" });
+      return;
+    }
+
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
       return;
     }
 
@@ -130,6 +141,11 @@ const renewSubscription = async (req, res) => {
 
     if (!subscriptionPlan) {
       response(req, res, 400, { error: "Please specify in the body the subscription plan that you want to renew" });
+      return;
+    }
+
+    if (!isValidInt(userId)) {
+      response(req, res, 400, { error: "URL parameter is not a valid integer" });
       return;
     }
 

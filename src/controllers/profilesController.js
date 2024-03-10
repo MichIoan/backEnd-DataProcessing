@@ -2,6 +2,7 @@ const Profile = require('../models/profile');
 const User = require('../models/user');
 const Preferences = require('../models/preferences');
 const response = require('../utilities/response');
+const { isValidInt } = require('../utilities/validate');
 
 const getProfileInformation = async (req, res) => {
     try {
@@ -15,6 +16,16 @@ const getProfileInformation = async (req, res) => {
 
         if (!profileId) {
             response(req, res, 400, { error: "Profile ID parameter is missing in the URL." });
+            return;
+        }
+
+        if (!isValidInt(userId)) {
+            response(req, res, 400, { error: "The parameter is not a valid integer" });
+            return;
+        }
+
+        if (!isValidInt(profileId)) {
+            response(req, res, 400, { error: "The parameter is not a valid integer" });
             return;
         }
 
@@ -45,8 +56,10 @@ const getProfileInformation = async (req, res) => {
             return;
         }
 
-        response(req, res, 202, {
-            profile
+        const { user_id, ...profileInfo } = profile;
+
+        response(req, res, 200, {
+            profileInfo
         });
         return;
 
@@ -63,10 +76,14 @@ const getAccountProfiles = async (req, res) => {
     const userId = req.params.userId;
 
     if (!userId) {
-        response(req, res, 401, {
+        response(req, res, 400, {
             error: "Please provide user id as parameter in the URL"
         });
         return;
+    }
+
+    if (!isValidInt(userId)) {
+        response(req, res, 400, { error: "URL parameter is not a valid integer" });
     }
 
     try {
@@ -106,6 +123,11 @@ const createProfile = async (req, res) => {
             return;
         }
 
+        if (!isValidInt(userId)) {
+            response(req, res, 400, { message: "URL parameter is not a valid integer" });
+            return;
+        }
+
         const existingUser = await User.findOne({
             where: {
                 user_id: userId,
@@ -141,7 +163,7 @@ const createProfile = async (req, res) => {
                 response(req, res, 400, { error: "Profile not created, please try again" });
                 return;
             }
-          
+
             response(req, res, 201, { message: "Profile created successfully" });
             return;
         }
@@ -169,6 +191,11 @@ const modifyProfile = async (req, res) => {
 
         if (!profileId) {
             response(req, res, 400, { error: "Profile ID parameter is missing in the URL." });
+            return;
+        }
+
+        if (!isValidInt(userId) || !isValidInt(profileId)) {
+            response(req, res, 400, { message: "URL Parameter is not a valid integer" });
             return;
         }
 
@@ -234,6 +261,11 @@ const modifyPreferences = async (req, res) => {
             return;
         }
 
+        if (!isValidInt(userId) || !isValidInt(profileId)) {
+            response(req, res, 400, { message: "URL Parameter is not a valid integer" });
+            return;
+        }
+
         const existingProfile = await Profile.findOne({
             where: {
                 user_id: userId,
@@ -246,26 +278,24 @@ const modifyPreferences = async (req, res) => {
             return;
         }
 
-        const updatedPreferences = {};
-        if (updatedPreferences.content_type) updatedPreferences.content_type = preferences.content_type;
-        if (updatedPreferences.genre) updatedPreferences.genre = preferences.genre;
-        if (updatedPreferences.minimum_age) updatedPreferences.minimum_age = preferences.minimum_age;
-        if (updatedPreferences.viewing_classification) updatedPreferences.viewing_classification = preferences.viewing_classification;
+        // const updatedPreferences = [];
+        // if (updatedPreferences.content_type) updatedPreferences.content_type = preferences.content_type;
+        // if (updatedPreferences.genre) updatedPreferences.genre = preferences.genre;
+        // if (updatedPreferences.minimum_age) updatedPreferences.minimum_age = preferences.minimum_age;
+        // if (updatedPreferences.viewing_classification) updatedPreferences.viewing_classification = preferences.viewing_classification;
 
-        if (!updatedPreferences) {
+        if (Object.keys(preferences).length === 0) {
             response(req, res, 200, {
                 message: "No preferences were modified"
             });
             return;
         }
 
-        if (updatedPreferences) {
-            await Preferences.update(updatedPreferences, {
-                where: {
-                    profile_id: profileId,
-                }
-            });
-        }
+        await Preferences.update(preferences, {
+            where: {
+                profile_id: profileId,
+            }
+        });
 
         response(req, res, 200, { message: "Profile preferences successfully modified" });
         return;
@@ -282,7 +312,7 @@ const deleteProfile = async (req, res) => {
     try {
         const profileId = req.params.profileId;
         const userId = req.params.userId;
-        
+
         if (!profileId) {
             response(req, res, 401, {
                 error: "Please provide the profile id in the URL"
@@ -294,6 +324,11 @@ const deleteProfile = async (req, res) => {
             response(req, res, 401, {
                 error: "Please provide the user id in the URL"
             });
+            return;
+        }
+
+        if (!isValidInt(userId) || !isValidInt(profileId)) {
+            response(req, res, 400, { message: "URL parameter is not a valid integer" });
             return;
         }
 

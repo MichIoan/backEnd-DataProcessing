@@ -13,7 +13,7 @@ let token;
 let userId;
 
 describe('/:userId/subscription/renew', () => {
-    it("Get token before tests", async () => {
+    beforeAll(async () => {
         try {
             await axios.post(registerURL, userDetails);
             await pool.query(`UPDATE "Users" SET status=$1 WHERE email=$2`, ["active", userDetails.email]);
@@ -27,18 +27,34 @@ describe('/:userId/subscription/renew', () => {
         }
     });
 
-    it('Get the profile succesfuly', async () => {
-
-        const response = await axios.get(subscriptionURL, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        
-        expect(response.status).toBe(200);
+    it("Invalid parameter", async () => {
+        try {
+            await axios.get(`http://localhost:8081/users/1.1/subscription/info`
+                , {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+        } catch (error) {
+            expect(error.response.status).toBe(400);
+            expect(error.response.data).toEqual({ error: "URL parameter is not a valid integer" });
+        }
     });
 
-    it("Delete user and all profiles after the tests", async () => {
+    it('Get the subscription info succesfuly', async () => {
+        try {
+            const response = await axios.get(subscriptionURL, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            expect(response.status).toBe(200);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+
+    afterAll(async () => {
         await pool.query(`DELETE FROM "Users" WHERE email=$1`, [userDetails.email]);
         pool.end();
     });

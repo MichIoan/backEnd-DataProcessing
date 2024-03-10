@@ -9,7 +9,6 @@ const userDetails = {
   password,
 };
 let token;
-let profileURL;
 let userId;
 
 describe("Modify Preference", () => {
@@ -43,9 +42,9 @@ describe("Modify Preference", () => {
       },
     });
     expect(response.status).toBe(200);
-    // expect(response.data).toEqual({
-    //   message: "Preferences modified successfully!",
-    // });
+    expect(response.data).toEqual({
+      message: "Profile updated successfully!",
+    });
   });
 
   it("Delete user and all profiles after the tests", async () => {

@@ -48,6 +48,15 @@ describe('POST /login', () => {
     }
   });
 
+  it('Successful Login should have message as \'Login successful\'', async () => {
+    userDetails.email = 'test@user.com';
+    userDetails.password = 'Password1';
+    const response = await axios.post(loginURL, userDetails);
+    expect(response.status).toEqual(200);
+    expect(response.data.message).toEqual('Login successful');
+
+  });
+
   it('Account suspended should return 400', async () => {
     userDetails.password = "wrongpass";
     await pool.query(`UPDATE "Users" SET "status"=$1, "locked_until"=$2 WHERE "email"=$3`, ["suspended", "2034-03-09 17:51:25.794+01", userDetails.email]);
@@ -59,20 +68,7 @@ describe('POST /login', () => {
     }
   });
 
-  it('Successful Login should have message as \'Login successful\'', async () => {
-    // assume this user exists and password is correct
-    try {
-      userDetails.email = 'test@user.com';
-      userDetails.password = 'Password1';
-      const response = await axios.post(loginURL, userDetails);
-      expect(response.status).toEqual(200);
-      expect(response.data.message).toEqual('Login successful');
-    } catch (error) {
-      console.log("Error line 78, please try the test again or look in the Readme.md");
-    }
-  });
-
-  it("Delete user after all the tests ran", async () => {
+  afterAll(async () => {
     await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [userDetails.email]);
     pool.end();
   });

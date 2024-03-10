@@ -1,7 +1,8 @@
 const axios = require("axios");
-const profileURL =
-  "http://localhost:8081/users/37/:userId/profiles/:profileId/modify-preferences";
+const pool = require('../db_conn');
+
 const loginURL = `http://localhost:8081/auth/login`;
+const registerURL = `http://localhost:8081/auth/register`;
 const email = "test@user.com";
 const password = "Password1";
 const userDetails = {
@@ -10,114 +11,91 @@ const userDetails = {
 };
 
 describe("Modify Preference", () => {
+  let profileURL;
   let token;
+  let userId;
+  let profileId;
 
-  it("Login to have token for all tests", async () => {
-    // Perform login before each test
-    userDetails.name = "david";
-    userDetails.profile_image = "example.jpg";
-    userDetails.kids = false;
-    userDetails.preferences = 41;
-    userDetails.date_of_birth = Date.now;
-    userDetails.language = "english";
+
+  beforeAll(async () => {
+    await axios.post(registerURL, userDetails);
+    await pool.query(`UPDATE "Users" SET status=$1 WHERE email=$2`, ["active", userDetails.email]);
 
     const login = await axios.post(loginURL, userDetails);
     token = login.data.token;
+
+    const query = await pool.query(`SELECT "user_id" FROM "Users" WHERE email=$1`, [userDetails.email]);
+    userId = query.rows[0].user_id;
+
+    const profileName = "test_profile";
+
+    await axios.post(`http://localhost:8081/users/${userId}/profiles/create`, {
+      name: profileName
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+
+    const profileQuery = await pool.query(`SELECT "profile_id" FROM "Profiles" WHERE user_id=$1 AND name=$2`, [userId, profileName]);
+    profileId = profileQuery.rows[0].profile_id;
+
+
+    profileURL = `http://localhost:8081/users/${userId}/profiles/${profileId}/modify-preferences`;
   });
 
-  it("Please provide the user id in the URL", async () => {
+  it("Invalid integer in URL", async () => {
     try {
-      const response = await axios.post(profileURL, userDetails, {
+      const response = await axios.patch(`http://localhost:8081/users/1.1/profiles/${profileId}/modify-preferences`
+        , userDetails, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      expect(response.status).toBe(400);
-      expect(response.data).toEqual({
-        message: "Provide de User ID!",
-      });
     } catch (error) {
-      console.log("ERROR:" + error);
-    }
-  });
-
-  it("Please provide the profile id in the URL", async () => {
-    try {
-      const response = await axios.post(profileURL, userDetails, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      expect(error.response.status).toBe(400);
+      expect(error.response.data).toEqual({
+        message: "URL Parameter is not a valid integer",
       });
-      expect(response.status).toBe(400);
-      expect(response.data).toEqual({
-        message: "Provide de Profile ID!",
-      });
-    } catch (error) {
-      console.log("ERROR:" + error);
-    }
-  });
-
-  it("No profile found for this id", async () => {
-    try {
-      const response = await axios.post(profileURL, userDetails, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      expect(response.status).toBe(401);
-      expect(response.data).toEqual({
-        message: "No profile found!",
-      });
-    } catch (error) {
-      console.log("ERROR:" + error);
     }
   });
 
   it("No preferences were modified", async () => {
     try {
-      const response = await axios.post(profileURL, userDetails, {
+      const response = await axios.patch(profileURL, "", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       expect(response.status).toBe(200);
       expect(response.data).toEqual({
-        message: "No modified preferences!",
+        message: "No preferences were modified",
       });
     } catch (error) {
-      console.log("ERROR:" + error);
+      console.log(error);
     }
   });
 
   it("Profile's preferences successfully modified", async () => {
     try {
-      const response = await axios.post(profileURL, userDetails, {
+      const preferences = { minimum_age: "18" };
+      const response = await axios.patch(profileURL, preferences, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      expect(response.status).toBe(202);
+
+      expect(response.status).toBe(200);
       expect(response.data).toEqual({
-        message: "Preferences modified successfully!",
+        message: "Profile preferences successfully modified",
       });
     } catch (error) {
-      console.log("ERROR:" + error);
+      console.log(error);
     }
   });
 
-  it("Internal server error", async () => {
-    try {
-      const response = await axios.post(profileURL, userDetails, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      expect(response.status).toBe(500);
-      expect(response.data).toEqual({
-        message: "Server not found!",
-      });
-    } catch (error) {
-      console.log("ERROR:" + error);
-    }
+  afterAll(async () => {
+    await pool.query(`DELETE FROM "Users" WHERE email=$1`, [userDetails.email]);
+    pool.end();
   });
 });

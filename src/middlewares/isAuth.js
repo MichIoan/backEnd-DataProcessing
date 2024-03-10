@@ -10,7 +10,7 @@ async function isAuth(req, res, next) {
     const email = decoded.email;
 
     if (!isEmail(email)) {
-        sendResponse(req, res, 401, { error: "Email is not valid or token is invalid" });
+        sendResponse(req, res, 401, { error: "Email is not valid or token is malformed" });
         return;
     }
 
