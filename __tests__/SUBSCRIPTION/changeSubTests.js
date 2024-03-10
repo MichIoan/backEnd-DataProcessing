@@ -10,6 +10,7 @@ const userDetails = {
 describe('/:userId/subscription/renew', () => {
     let userId;
     let token;
+    let subscriptionURL;
     beforeAll(async () => {
         try {
             await axios.post(registerURL, userDetails);

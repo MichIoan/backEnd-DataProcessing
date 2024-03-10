@@ -8,7 +8,7 @@ const userDetails = {
     password: "Password1"
 }
 
-describe('/:userId/subscription/renew', () => {
+describe('/', () => {
     let token;
     beforeAll(async () => {
         try {

@@ -17,8 +17,6 @@ describe('POST /register', () => {
             expect(error.response.data).toEqual({
                 "error": "Invalid email format!"
             });
-        } catch (error) {
-            console.log(error);
         }
     });
 
@@ -73,7 +71,7 @@ describe('POST /register', () => {
     });
 
     afterAll(async () => {
-        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [userDetails.email])
+        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, ["existing@user.com"]);
         pool.end();
     });
 });

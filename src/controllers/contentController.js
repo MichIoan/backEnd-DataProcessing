@@ -1,11 +1,14 @@
 const Series = require('../models/series');
+const Season = require('../models/season');
 const Media = require('../models/media');
+const WatchHistory = require('../models/watchHistory');
+const WatchList = require('../models/watchList');
 const response = require('../utilities/response');
 const {
     isValidInt
 } = require('../utilities/validate');
 
-const addMovie = async (req, res) => {
+const createMovie = async (req, res) => {
     const movie = req.body;
 
     if (!movie.title || !movie.duration) {
@@ -36,7 +39,7 @@ const addMovie = async (req, res) => {
     }
 }
 
-const removeMovie = async (req, res) => {
+const deleteMovie = async (req, res) => {
     const movieId = req.params.movieId;
 
     if (!movieId || !isValidInt(movieId)) {
@@ -334,6 +337,13 @@ const startSeriesEpisode = async (req, res) => {
         return;
     }
 
+    const watchList = await WatchList.findOne({
+        where: {
+            profile_id: profileId,
+            media_id: episodeId
+        }
+    });
+
     await WatchList.create({
         profile_id: profileId,
         media_id: episodeId,
@@ -390,13 +400,40 @@ const endSeriesEpisode = async (req, res) => {
         return;
     }
 
+    const watchList = await WatchList.findOne({
+        where: {
+            profile_id: profileId,
+            media_id: episodeId
+        }
+    })
+
     await WatchList.create({
         profile_id: profileId,
         media_id: episodeId,
-        viewing_status: "started"
+        viewing_status: "watched",
     });
 
-    response(req, res, 200);
+    const watchHistory = await WatchHistory.findOne({
+        where: {
+            profile_id: profileId,
+            media_id: episodeId
+        }
+    });
+
+    if(!watchHistory) {
+        await WatchHistory.create({ 
+            profile_id: profileId,
+            media_id: episodeId,
+            viewing_status: "watched",
+            times_watched: "1"
+        });
+    }
+
+    await watchHistory.update({
+        times_watched: watchHistory.times_watched + 1,
+    })
+
+    response(req, res, 204);
     return;
 }
 
@@ -458,7 +495,7 @@ const getWatchList = async (req, res) => {
     return;
 }
 
-const addSeries = async (req, res) => {
+const createSeries = async (req, res) => {
     const series = req.body;
 
     if (!series.title || !series.start_date || !series.genre || !series.viewing_classification) {
@@ -479,7 +516,6 @@ const addSeries = async (req, res) => {
 
         response(req, res, 200, {
             message: "Series added successfully.",
-            series: newSeries,
         });
     } catch (err) {
         console.log(err);
@@ -489,10 +525,10 @@ const addSeries = async (req, res) => {
     }
 };
 
-const addSeason = async (req, res) => {
+const createSeason = async (req, res) => {
     const season = req.body;
-
-    if (!season.series_id || !season.season_number) {
+    const seriesId = req.params.seriesId;
+    if (!season.season_number) {
         response(req, res, 400, {
             message: "Please provide the necessary properties for the season."
         });
@@ -501,14 +537,13 @@ const addSeason = async (req, res) => {
 
     try {
         const newSeason = await Season.create({
-            series_id: season.series_id,
+            series_id: seriesId,
             season_number: season.season_number,
             release_date: season.release_date || null,
         });
 
         response(req, res, 200, {
-            message: "Season added successfully.",
-            season: newSeason,
+            message: "Season added successfully."
         });
     } catch (err) {
         console.log(err);
@@ -518,10 +553,11 @@ const addSeason = async (req, res) => {
     }
 };
 
-const addEpisode = async (req, res) => {
+const createEpisode = async (req, res) => {
     const episode = req.body;
+    const seasonId = req.params.seasonId;
 
-    if (!episode.season_id || !episode.episode_number || !episode.title || !episode.duration) {
+    if (!episode.episode_number || !episode.title || !episode.duration) {
         response(req, res, 400, {
             message: "Please provide the necessary properties for the episode."
         });
@@ -530,7 +566,7 @@ const addEpisode = async (req, res) => {
 
     try {
         const newEpisode = await Media.create({
-            season_id: episode.season_id,
+            season_id: seasonId,
             episode_number: episode.episode_number,
             title: episode.title,
             duration: episode.duration,
@@ -539,7 +575,6 @@ const addEpisode = async (req, res) => {
 
         response(req, res, 200, {
             message: "Episode added successfully.",
-            episode: newEpisode,
         });
     } catch (err) {
         console.log(err);
@@ -549,9 +584,29 @@ const addEpisode = async (req, res) => {
     }
 };
 
+const deleteSeries = async (req, res) => {
+    try{
+
+    } catch(error) {
+        response
+    }
+}
+
+const deleteEpisode = async (req, res) => {};
+
+const deleteSeason = async (req, res) => {
+
+}
+
 module.exports = {
-    addMovie,
-    removeMovie,
+    createMovie,
+    createSeries,
+    createSeason,
+    createEpisode,
+    deleteMovie,
+    deleteEpisode,
+    deleteSeries,
+    deleteSeason,
     getMovies,
     getSeries,
     getMovieById,
@@ -561,8 +616,5 @@ module.exports = {
     startSeriesEpisode,
     endSeriesEpisode,
     getWatchHistory,
-    getWatchList,
-    addSeries,
-    addSeason,
-    addEpisode,
+    getWatchList
 };

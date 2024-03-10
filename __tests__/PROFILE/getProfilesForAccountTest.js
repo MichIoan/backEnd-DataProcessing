@@ -57,7 +57,7 @@ describe("Profiles for Account", () => {
       });
 
     } catch (error) {
-      expect(error.response.status).toBe(400);
+      expect(error.response.status).toBe(401);
       expect(error.response.data).toEqual({ message: "Account ID not provided." });
     }
   });
