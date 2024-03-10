@@ -2,19 +2,17 @@ const axios = require('axios');
 const pool = require('../db_conn');
 const registerURL = 'http://localhost:8081/auth/register';
 const loginURL = 'http://localhost:8081/auth/login';
-// const subscriptionURL = `http://localhost:8081/users/:userId/subscription/info`;
 
 const userDetails = {
-    email: "test@user.com",
+    email: "test2@user.com",
     password: "Password1"
 }
 let subscriptionURL;
 let token;
 let userId;
 
-describe('/:userId/subscription/renew', () => {
+describe('Get subscription info tests', () => {
     beforeAll(async () => {
-        try {
             await axios.post(registerURL, userDetails);
             await pool.query(`UPDATE "Users" SET status=$1 WHERE email=$2`, ["active", userDetails.email]);
             const query = await pool.query(`SELECT "user_id" FROM "Users" WHERE email=$1`, [userDetails.email]);
@@ -22,9 +20,6 @@ describe('/:userId/subscription/renew', () => {
             subscriptionURL = `http://localhost:8081/users/${userId}/subscription/info`;
             const login = await axios.post(loginURL, userDetails);
             token = login.data.token;
-        } catch (error) {
-            console.log("ERROR:" + error);
-        }
     });
 
     it("Invalid parameter", async () => {
@@ -59,55 +54,4 @@ describe('/:userId/subscription/renew', () => {
         pool.end();
     });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-})
+});

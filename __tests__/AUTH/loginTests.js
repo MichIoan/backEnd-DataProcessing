@@ -20,7 +20,7 @@ describe('POST /login', () => {
       });
     }
   });
-  
+
   it('Account not activated should return 400', async () => {
     try {
       await axios.post(registerURL, userDetails);

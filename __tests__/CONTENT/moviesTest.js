@@ -4,7 +4,7 @@ const registerURL = 'http://localhost:8081/auth/register';
 const loginURL = 'http://localhost:8081/auth/login';
 const contentURL = `http://localhost:8081/content`;
 const userDetails = {
-    email: "test@user.com",
+    email: "test1@user.com",
     password: "Password1"
 }
 

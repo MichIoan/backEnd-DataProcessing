@@ -100,8 +100,16 @@ const getAccountProfiles = async (req, res) => {
             return;
         }
 
+        let profilesInfo = profiles.map(profile => {
+            return {
+                name: profile.name,
+                child_profile: profile.child_profile,
+                date_of_birth: profile.date_of_birth
+            };
+        });
+        
         response(req, res, 202, {
-            profiles
+            profiles: profilesInfo
         });
         return;
     } catch (error) {
