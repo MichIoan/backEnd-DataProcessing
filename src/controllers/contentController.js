@@ -458,6 +458,97 @@ const getWatchList = async (req, res) => {
     return;
 }
 
+const addSeries = async (req, res) => {
+    const series = req.body;
+
+    if (!series.title || !series.start_date || !series.genre || !series.viewing_classification) {
+        response(req, res, 400, {
+            message: "Please provide the necessary properties for the series."
+        });
+        return;
+    }
+
+    try {
+        const newSeries = await Series.create({
+            title: series.title,
+            age_restriction: series.age_restriction || null,
+            start_date: series.start_date,
+            genre: series.genre,
+            viewing_classification: series.viewing_classification,
+        });
+
+        response(req, res, 200, {
+            message: "Series added successfully.",
+            series: newSeries,
+        });
+    } catch (err) {
+        console.log(err);
+        response(res, 500, {
+            error: "Internal server error"
+        });
+    }
+};
+
+const addSeason = async (req, res) => {
+    const season = req.body;
+
+    if (!season.series_id || !season.season_number) {
+        response(req, res, 400, {
+            message: "Please provide the necessary properties for the season."
+        });
+        return;
+    }
+
+    try {
+        const newSeason = await Season.create({
+            series_id: season.series_id,
+            season_number: season.season_number,
+            release_date: season.release_date || null,
+        });
+
+        response(req, res, 200, {
+            message: "Season added successfully.",
+            season: newSeason,
+        });
+    } catch (err) {
+        console.log(err);
+        response(res, 500, {
+            error: "Internal server error"
+        });
+    }
+};
+
+const addEpisode = async (req, res) => {
+    const episode = req.body;
+
+    if (!episode.season_id || !episode.episode_number || !episode.title || !episode.duration) {
+        response(req, res, 400, {
+            message: "Please provide the necessary properties for the episode."
+        });
+        return;
+    }
+
+    try {
+        const newEpisode = await Media.create({
+            season_id: episode.season_id,
+            episode_number: episode.episode_number,
+            title: episode.title,
+            duration: episode.duration,
+            release_date: episode.release_date || null,
+        });
+
+        response(req, res, 200, {
+            message: "Episode added successfully.",
+            episode: newEpisode,
+        });
+    } catch (err) {
+        console.log(err);
+        response(res, 500, {
+            error: "Internal server error"
+        });
+    }
+};
+
 module.exports = {
     addMovie,
     removeMovie,
@@ -470,5 +561,8 @@ module.exports = {
     startSeriesEpisode,
     endSeriesEpisode,
     getWatchHistory,
-    getWatchList
+    getWatchList,
+    addSeries,
+    addSeason,
+    addEpisode,
 };
