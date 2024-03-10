@@ -74,7 +74,6 @@ const register = async (req, res) => {
     });
     return;
   } catch (error) {
-    console.log(error);
     response(req, res, 500, {
       error: 'Internal server error'
     });
@@ -198,10 +197,7 @@ const login = async (req, res) => {
     });
     return;
   } catch (error) {
-    console.log(error);
-    response(req, res, 500, {
-      error: 'Internal server error'
-    });
+    response(req, res, 500, { error: 'Internal server error' });
     return;
   }
 }
@@ -347,3 +343,4 @@ module.exports = {
   register,
   login
 };
+

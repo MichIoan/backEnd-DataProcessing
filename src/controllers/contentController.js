@@ -77,7 +77,7 @@ const deleteMovie = async (req, res) => {
     }
 }
 
-const getMovies = async (req, res) => {
+const getMovies = async (req, res) => { //! missing add and delete for media
     try {
         const movies = await Media.findAll({
             where: {
