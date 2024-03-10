@@ -57,7 +57,6 @@ const register = async (req, res) => {
     response(req, res, 201, { message: 'User registered successfully. Activate account from email!' });
     return;
   } catch (error) {
-    console.log(error);
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
@@ -161,7 +160,6 @@ const login = async (req, res) => {
     response(req, res, 200, { message: 'Login successful', token: token });
     return;
   } catch (error) {
-    console.log(error);
     response(req, res, 500, { error: 'Internal server error' });
     return;
   }
