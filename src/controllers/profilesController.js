@@ -72,7 +72,7 @@ const getProfileInformation = async (req, res) => {
     }
 }
 
-const getAccountProfiles = async (req, res) => {
+const getAccountProfiles = async (req, res) => { //! this returns error when bulding the body for xml: "TypeError: name.indexOf is not a function"
     const userId = req.params.userId;
 
     if (!userId) {

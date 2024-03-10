@@ -3,7 +3,7 @@ const sendResponse = require('../utilities/response');
 const User = require('../models/user');
 const { isEmail } = require('../utilities/validate');
 
-async function isAuth(req, res, next) {
+async function isAuth(req, res, next) { //! implement refresh token request
     const decoded = await verifyToken(req, res);
     if (res.headersSent) return;
 

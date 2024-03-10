@@ -17,8 +17,6 @@ describe('POST /register', () => {
             expect(error.response.data).toEqual({
                 "error": "Invalid email format!"
             });
-        } catch (error) {
-            console.log(error);
         }
     });
 

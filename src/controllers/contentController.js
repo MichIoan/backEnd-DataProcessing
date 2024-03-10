@@ -3,7 +3,7 @@ const Media = require('../models/media');
 const response = require('../utilities/response');
 const { isValidInt } = require('../utilities/validate');
 
-const getMovies = async (req, res) => {
+const getMovies = async (req, res) => { //! missing add and delete for media
     try {
         const movies = await Media.findAll({
             where: {
