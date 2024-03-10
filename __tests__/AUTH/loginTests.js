@@ -21,13 +21,9 @@ describe('POST /login', () => {
     }
   });
 
-  //changed register user from beforeAll to it due to some errors
-  it("register user before the test", async () => {
-    await axios.post(registerURL, userDetails);
-  });
-
   it('Account not activated should return 400', async () => {
     try {
+      await axios.post(registerURL, userDetails);
       await axios.post(loginURL, userDetails);
     } catch (error) {
       expect(error.response.status).toBe(400);

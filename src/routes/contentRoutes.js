@@ -5,6 +5,18 @@ const contentController = require('../controllers/contentController')
 
 router.use(isAuth);
 
+router.post('/movie/create', contentController.createMovie);
+
+router.delete('/movie/:movieId/delete', contentController.deleteMovie);
+
+router.post('/series/create', contentController.createSeries);
+
+router.post('/:seriesId/create-season', contentController.createSeason);
+
+router.post('/:seasonId/create-episode', contentController.createEpisode);
+
+// router.delete('/movie/:movieId/delete', contentController.deleteSeries);
+
 router.get('/movie/:movieId/getMovie', contentController.getMovieById);
 
 router.get('/getMovies', contentController.getMovies);

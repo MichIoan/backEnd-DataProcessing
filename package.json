@@ -6,6 +6,11 @@
   "scripts": {
     "test": "jest"
   },
+  "jest" : {
+    "testPathIgnorePatterns": [
+      "/__tests__/db_conn.js"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

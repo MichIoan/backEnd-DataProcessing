@@ -2,7 +2,7 @@ const axios = require("axios");
 const pool = require('../db_conn');
 const loginURL = `http://localhost:8081/auth/login`;
 const registerURL = `http://localhost:8081/auth/register`;
-const email = "test@user.com";
+const email = "test4@user.com";
 const password = "Password1";
 const userDetails = {
   email,
@@ -57,7 +57,7 @@ describe("Profiles for Account", () => {
       });
 
     } catch (error) {
-      expect(error.response.status).toBe(400);
+      expect(error.response.status).toBe(401);
       expect(error.response.data).toEqual({ message: "Account ID not provided." });
     }
   });

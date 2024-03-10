@@ -4,7 +4,10 @@ const User = require('../models/user');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const response = require('../utilities/response');
-const { isEmail, isValidPassword } = require('../utilities/validate');
+const {
+  isEmail,
+  isValidPassword
+} = require('../utilities/validate');
 const checkReferralCode = require('../utilities/checkReferralCode');
 const Subscription = require('../models/subscription');
 
@@ -14,19 +17,25 @@ const register = async (req, res) => {
     const discountCode = req.body.discountCode;
 
     if (!isEmail(email)) {
-      response(req, res, 400, { error: "Invalid email format!" });
+      response(req, res, 400, {
+        error: "Invalid email format!"
+      });
       return;
     }
 
     const userExists = await checkIfUserExists(email);
 
     if (userExists) {
-      response(req, res, 400, { error: 'User with this email already exists' });
+      response(req, res, 400, {
+        error: 'User with this email already exists'
+      });
       return;
     }
 
     if (!isValidPassword(req.body.password)) {
-      response(req, res, 400, { error: "Password must contain at least 1 capital, a number and 6 characters" });
+      response(req, res, 400, {
+        error: "Password must contain at least 1 capital, a number and 6 characters"
+      });
       return;
     }
 
@@ -37,7 +46,11 @@ const register = async (req, res) => {
 
     const password = await bcrypt.hash(req.body.password, 10);
     const referral_code = await generateUniqueReferralCode(email);
-    const token = jwt.sign({ email: req.body.email }, process.env.JWT_KEY, { expiresIn: '1d' });
+    const token = jwt.sign({
+      email: req.body.email
+    }, process.env.JWT_KEY, {
+      expiresIn: '1d'
+    });
     const verificationLink = `localhost:8081/auth/activate?token=${token}`;
 
     await sendVerificationEmail(req.body.email, verificationLink);
@@ -50,14 +63,20 @@ const register = async (req, res) => {
     });
 
     if (!newUser) {
-      response(req, res, 400, { error: "Error while creating the account, please try again" });
+      response(req, res, 400, {
+        error: "Error while creating the account, please try again"
+      });
       return;
     }
 
-    response(req, res, 201, { message: 'User registered successfully. Activate account from email!' });
+    response(req, res, 201, {
+      message: 'User registered successfully. Activate account from email!'
+    });
     return;
   } catch (error) {
-    response(req, res, 500, { error: 'Internal server error' });
+    response(req, res, 500, {
+      error: 'Internal server error'
+    });
     return;
   }
 }
@@ -68,7 +87,9 @@ const login = async (req, res) => {
     const password = req.body.password;
 
     if (!isEmail(email)) {
-      response(req, res, 400, { error: "Invalid email format" });
+      response(req, res, 400, {
+        error: "Invalid email format"
+      });
       return;
     }
 
@@ -79,12 +100,16 @@ const login = async (req, res) => {
     });
 
     if (!existingUser) {
-      response(req, res, 400, { error: 'User not found' });
+      response(req, res, 400, {
+        error: 'User not found'
+      });
       return;
     }
 
     if (existingUser.status == 'not_activated') {
-      response(req, res, 400, { error: 'Please activate the account first' });
+      response(req, res, 400, {
+        error: 'Please activate the account first'
+      });
       return;
     }
 
@@ -97,7 +122,9 @@ const login = async (req, res) => {
           failed_login_attempts: 0,
         })
       } else {
-        response(req, res, 400, { error: `You have failed to login for 3 times, your account has been locked for an hour.` });
+        response(req, res, 400, {
+          error: `You have failed to login for 3 times, your account has been locked for an hour.`
+        });
         return;
       }
     }
@@ -117,7 +144,9 @@ const login = async (req, res) => {
           failed_login_attempts: counter
         });
 
-        response(req, res, 400, { error: `You have failed to login for 3 times, you account has been locked for an hour.` });
+        response(req, res, 400, {
+          error: `You have failed to login for 3 times, you account has been locked for an hour.`
+        });
         return;
       }
 
@@ -127,7 +156,9 @@ const login = async (req, res) => {
 
       const leftAttempts = 3 - counter;
 
-      response(req, res, 400, { error: `Invalid password. You have ${leftAttempts} attempts left.` });
+      response(req, res, 400, {
+        error: `Invalid password. You have ${leftAttempts} attempts left.`
+      });
       return;
     }
 
@@ -146,10 +177,13 @@ const login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
-      process.env.JWT_KEY,
-      { expiresIn: '24h' }
+    const token = jwt.sign({
+        userId: existingUser.id,
+        email: existingUser.email
+      },
+      process.env.JWT_KEY, {
+        expiresIn: '24h'
+      }
     );
 
     existingUser.update({
@@ -157,7 +191,10 @@ const login = async (req, res) => {
       locked_until: null,
     })
 
-    response(req, res, 200, { message: 'Login successful', token: token });
+    response(req, res, 200, {
+      message: 'Login successful',
+      token: token
+    });
     return;
   } catch (error) {
     response(req, res, 500, { error: 'Internal server error' });
@@ -172,19 +209,22 @@ const emailVerification = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_KEY);
     const userEmail = decoded.email;
 
-    User.update(
-      { status: 'activated' },
-      {
-        where: {
-          email: userEmail,
-        },
-      }
-    )
+    User.update({
+      status: 'activated'
+    }, {
+      where: {
+        email: userEmail,
+      },
+    })
 
-    response(req, res, 200, { message: 'Account activated successfully' });
+    response(req, res, 200, {
+      message: 'Account activated successfully'
+    });
     return;
   } catch (error) {
-    response(req, res, 400, { error: 'Invalid or expired token.' });
+    response(req, res, 400, {
+      error: 'Invalid or expired token.'
+    });
     return;
   }
 }
@@ -254,4 +294,53 @@ async function sendVerificationEmail(email, link) {
   }
 }
 
-module.exports = { emailVerification, register, login };
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      response(req, res, 401, {
+        error: "Please provide the user id in the URL"
+      });
+      return;
+    }
+
+    if (!isValidInt(userId)) {
+      response(req, res, 400, {
+        message: "URL parameter is not a valid integer"
+      });
+      return;
+    }
+
+    const destroyed = await User.destroy({
+      where: {
+        user_id: userId,
+      }
+    });
+
+    if (!destroyed) {
+      response(req, res, 401, {
+        error: "No user found with this name"
+      });
+      return;
+    }
+
+    response(req, res, 200, {
+      message: "Profile deleted successfully"
+    });
+    return;
+  } catch (error) {
+    console.log(error);
+    response(req, res, 500, {
+      error: "Internal server error"
+    });
+    return;
+  }
+}
+
+module.exports = {
+  deleteUser,
+  emailVerification,
+  register,
+  login
+};
+

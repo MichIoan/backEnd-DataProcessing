@@ -1,7 +1,12 @@
 INSTRUCTIONS
 
-1. <b>Database</b>
-2. <b>Node/Express & env</b>
+1. <b>TESTS</b>
+2. <b>Database</b>
+3. <b>Node/Express & env</b>
+
+<b>TESTS</b>
+
+For tests, run each folder individually, not the entire tests folder, as it will cause errors. (e.g. "npm test ./__tests__/AUTH" instead of "npm test ./__tests__" 
 
 <b>DATABASE</b>
 

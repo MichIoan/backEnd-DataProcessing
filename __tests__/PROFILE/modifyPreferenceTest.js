@@ -3,7 +3,7 @@ const pool = require('../db_conn');
 
 const loginURL = `http://localhost:8081/auth/login`;
 const registerURL = `http://localhost:8081/auth/register`;
-const email = "test@user.com";
+const email = "test5@user.com";
 const password = "Password1";
 const userDetails = {
   email,

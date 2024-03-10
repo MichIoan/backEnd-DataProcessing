@@ -71,7 +71,7 @@ describe('POST /register', () => {
     });
 
     afterAll(async () => {
-        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, [userDetails.email])
+        await pool.query(`DELETE FROM "Users" WHERE "Users"."email"=$1`, ["existing@user.com"]);
         pool.end();
     });
 });
