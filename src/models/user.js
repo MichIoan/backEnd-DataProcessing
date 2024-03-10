@@ -21,10 +21,6 @@ const User = sequelize.define('User', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'not_activated',
-  },
   referral_code: {
     type: DataTypes.STRING,
     unique: true,
@@ -40,9 +36,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-  admin: {
-    type: DataTypes.BOOLEAN
-  }
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: 'not_activated',
+  },
 },
   {
     timestamps: false,
