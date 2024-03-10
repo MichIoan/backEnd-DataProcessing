@@ -6,7 +6,8 @@ const nodemailer = require('nodemailer');
 const response = require('../utilities/response');
 const {
   isEmail,
-  isValidPassword
+  isValidPassword,
+  isValidInt
 } = require('../utilities/validate');
 const checkReferralCode = require('../utilities/checkReferralCode');
 const Subscription = require('../models/subscription');
@@ -178,12 +179,12 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign({
-        userId: existingUser.id,
-        email: existingUser.email
-      },
+      userId: existingUser.id,
+      email: existingUser.email
+    },
       process.env.JWT_KEY, {
-        expiresIn: '24h'
-      }
+      expiresIn: '24h'
+    }
     );
 
     existingUser.update({
@@ -325,7 +326,7 @@ const deleteUser = async (req, res) => {
     }
 
     response(req, res, 200, {
-      message: "Profile deleted successfully"
+      message: "User account deleted successfully"
     });
     return;
   } catch (error) {

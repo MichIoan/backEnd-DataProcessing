@@ -15,7 +15,7 @@ router.post('/:seriesId/create-season', contentController.createSeason);
 
 router.post('/:seasonId/create-episode', contentController.createEpisode);
 
-// router.delete('/movie/:movieId/delete', contentController.deleteSeries);
+router.delete('/series/:seriesId/delete', contentController.deleteSeries);
 
 router.get('/movie/:movieId/getMovie', contentController.getMovieById);
 
@@ -29,9 +29,9 @@ router.post('/:profileId/:movieId/start', contentController.startMovie);
 
 router.post('/:profileId/:movieId/end', contentController.endMovie);
 
-router.get('/profile/:profileId/:seriesId/:season/:episode/start', contentController.startSeriesEpisode);
+router.post('/profile/:profileId/:seriesId/:season/:episode/start', contentController.startSeriesEpisode);
 
-router.get('/profile/:profileId/:seriesId/:season/:episode/end', contentController.endSeriesEpisode);
+router.post('/profile/:profileId/:seriesId/:season/:episode/end', contentController.endSeriesEpisode);
 
 router.get('/profile/:profileId/watch-history', contentController.getWatchHistory);
 
